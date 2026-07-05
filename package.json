@@ -1,8 +1,8 @@
 {
-  "name": "calificacion-financiera",
-  "version": "1.0.0",
+  "name": "gscapital",
+  "version": "2.0.0",
   "private": true,
-  "description": "Evaluación de calificación financiera personal",
+  "description": "GSCAPITAL - Gestor de banca y base de datos de clientes",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -1,72 +1,55 @@
-# Calificación Financiera
+# GSCAPITAL
 
-Aplicación web para evaluar la salud financiera personal mediante un cuestionario interactivo. Genera una puntuación de 0 a 100, clasifica el perfil y entrega recomendaciones accionables.
+Gestor de banca financiera con base de datos en la nube (Supabase).
 
-## Características
+## Módulos
 
-- Cuestionario de 8 preguntas sobre ingresos, deuda, ahorro, crédito y planificación
-- Puntuación global y desglose por categoría
-- Recomendaciones según el nivel obtenido
-- Interfaz responsive en español
-- Guardado de evaluaciones en Supabase
-- Lista para desplegar en Vercel
+- **Asesoramiento** — ficha completa del cliente
+- **Calculadora de Hipoteca** — capacidad de pago y cuota estimada
+- **Préstamo Personal** — simulación de cuotas
+- **Base de Datos Clientes** — listado, filtros y acciones
+- **Colaboradores de Banca** — contactos por entidad
+- **Tasadores** — peritos y zonas de cobertura
+- **Configuración** — importar/exportar JSON y sincronizar
 
-## Stack
+## Estructura del proyecto
 
-- Next.js 15
-- React 19
-- TypeScript
-- Tailwind CSS
-- Supabase
+```
+app/
+  api/clients/          API clientes (Supabase)
+  api/collaborators/    API colaboradores
+  api/tasadores/        API tasadores
+components/gscapital/
+  tabs/                 Una pestaña por módulo
+  layout/               Cabecera y navegación
+  ui/                   Componentes reutilizables
+lib/gscapital/
+  calculators/          Lógica hipoteca y préstamo
+  types.ts              Tipos compartidos
+  api.ts                Cliente HTTP
+supabase/
+  setup_database.sql    Script SQL para Supabase
+```
 
 ## Configurar Supabase
 
-### 1. Crear proyecto en Supabase
+1. Ejecuta `supabase/setup_database.sql` en el SQL Editor
+2. Configura `.env.local`:
 
-1. Entra a [supabase.com/dashboard](https://supabase.com/dashboard)
-2. Crea un proyecto nuevo llamado `calificacion-financiera`
-3. Copia la **Project URL** y la **anon public key**
-
-### 2. Crear la tabla
-
-En el **SQL Editor** de Supabase, ejecuta el contenido de:
-
-`supabase/setup_database.sql`
-
-### 3. Variables de entorno
-
-Copia `.env.local.example` a `.env.local` y completa los valores:
-
-```bash
+```env
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 ```
 
-En Vercel, agrega las mismas variables en **Settings → Environment Variables**.
+3. En Vercel, agrega las mismas variables
 
-## Desarrollo local
+## Desarrollo
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000).
+## App original
 
-## Despliegue en Vercel
-
-1. Importa el repositorio de GitHub en [vercel.com/new](https://vercel.com/new)
-2. Selecciona el repositorio `danielhdz-ai/calificacion-financiera`
-3. Vercel detectará Next.js automáticamente
-4. Haz clic en **Deploy**
-
-## Scripts
-
-- `npm run dev` — servidor de desarrollo
-- `npm run build` — build de producción
-- `npm run start` — servidor de producción
-- `npm run lint` — lint del proyecto
-
-## Licencia
-
-Proyecto privado.
+La versión monolítica original está en `D:\Proyectos\finanbase\BASEGS.html`.

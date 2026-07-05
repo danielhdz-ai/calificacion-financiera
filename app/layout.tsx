@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Calificación Financiera",
+  title: "GSCAPITAL - Base de Datos Financiera",
   description:
-    "Evalúa tu salud financiera con un cuestionario interactivo y recibe recomendaciones personalizadas.",
+    "Gestor de banca: asesoramiento, calculadoras de hipoteca y préstamo, base de clientes y colaboradores.",
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" className="dark">
       <body>{children}</body>
     </html>
   );
