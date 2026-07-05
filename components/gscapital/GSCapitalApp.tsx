@@ -7,6 +7,7 @@ import { ColaboradoresTab } from "@/components/gscapital/tabs/ColaboradoresTab";
 import { ConfiguracionTab } from "@/components/gscapital/tabs/ConfiguracionTab";
 import { DatabaseTab } from "@/components/gscapital/tabs/DatabaseTab";
 import { HipotecaTab } from "@/components/gscapital/tabs/HipotecaTab";
+import { InmobiliariosTab } from "@/components/gscapital/tabs/InmobiliariosTab";
 import { PrestamoTab } from "@/components/gscapital/tabs/PrestamoTab";
 import { TasadoresTab } from "@/components/gscapital/tabs/TasadoresTab";
 import {
@@ -15,7 +16,7 @@ import {
 } from "@/components/gscapital/GSCapitalContext";
 
 function TabContent() {
-  const { activeTab, loading, syncError } = useGSCapital();
+  const { activeTab, loading } = useGSCapital();
 
   if (loading) {
     return <p className="py-12 text-center text-gray-500">Cargando datos...</p>;
@@ -23,16 +24,12 @@ function TabContent() {
 
   return (
     <>
-      {syncError ? (
-        <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
-          {syncError}. Verifica Supabase y ejecuta `supabase/setup_database.sql`.
-        </div>
-      ) : null}
       {activeTab === "asesoramiento" ? <AsesoramientoTab /> : null}
       {activeTab === "hipoteca" ? <HipotecaTab /> : null}
       {activeTab === "prestamo" ? <PrestamoTab /> : null}
       {activeTab === "database" ? <DatabaseTab /> : null}
       {activeTab === "colaboradores" ? <ColaboradoresTab /> : null}
+      {activeTab === "inmobiliarios" ? <InmobiliariosTab /> : null}
       {activeTab === "tasadores" ? <TasadoresTab /> : null}
       {activeTab === "configuracion" ? <ConfiguracionTab /> : null}
     </>

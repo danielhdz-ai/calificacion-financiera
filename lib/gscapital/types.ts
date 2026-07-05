@@ -58,6 +58,38 @@ export type Client = {
   additionalInfo?: AdditionalInfo;
   pdfData?: string | null;
   pdfName?: string | null;
+  personalLoan?: PersonalLoanSnapshot;
+  mortgageSnapshot?: MortgageSnapshot;
+};
+
+export type PersonalLoanSnapshot = {
+  purpose?: string;
+  loanAmount?: number;
+  loanTermYears?: number;
+  tin?: number;
+  tae?: number;
+  cuotaMensual?: number;
+  totalAdeudado?: number;
+  costeTotalCredito?: number;
+  updatedAt?: string;
+};
+
+export type MortgageSnapshot = {
+  monthlyIncome?: number;
+  existingDebts?: number;
+  numTitulares?: string;
+  financiacionPct?: number;
+  housePrice?: number;
+  loanTerm?: number;
+  hipotecaInterestRate?: number;
+  availableSavings?: number;
+  existingLoanPayment?: number;
+  itpPercentage?: number;
+  cuotaMensual?: number;
+  importeHipoteca?: number;
+  precioMaximoVivienda?: number;
+  ahorrosNecesarios?: number;
+  updatedAt?: string;
 };
 
 export type Collaborator = {
@@ -80,12 +112,23 @@ export type Tasador = {
   notas?: string;
 };
 
+export type Inmobiliario = {
+  id: string;
+  inmobiliaria: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  zona?: string;
+  notas?: string;
+};
+
 export type TabId =
   | "asesoramiento"
   | "hipoteca"
   | "prestamo"
   | "database"
   | "colaboradores"
+  | "inmobiliarios"
   | "tasadores"
   | "configuracion";
 

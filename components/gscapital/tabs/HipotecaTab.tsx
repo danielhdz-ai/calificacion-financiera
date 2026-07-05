@@ -68,10 +68,56 @@ export function HipotecaTab() {
 
   function handleCalculate() {
     const calculated = calculateMortgage({ ...form, housePrice: form.housePrice || 0 });
-    if (!form.housePrice && calculated.precioMaximoVivienda > 0) {
-      updateField("housePrice", Math.round(calculated.precioMaximoVivienda));
+    const nextHousePrice =
+      !form.housePrice && calculated.precioMaximoVivienda > 0
+        ? Math.round(calculated.precioMaximoVivienda)
+        : form.housePrice;
+    if (nextHousePrice !== form.housePrice) {
+      updateField("housePrice", nextHousePrice);
     }
     setResult(calculated);
+
+    if (currentClient) {
+      void updateClient({
+        ...currentClient,
+        income: form.monthlyIncome,
+        debts: form.existingDebts,
+        numTitulares: form.numTitulares,
+        financiacionPct: String(form.financiacionPct),
+        housePrice: calculated.precioMaximoVivienda,
+        loanTerm: form.loanTerm,
+        hipotecaInterestRate: form.hipotecaInterestRate,
+        availableSavings: form.availableSavings,
+        existingLoanPayment: form.existingLoanPayment,
+        itpPercentage: form.itpPercentage,
+        itpValue: calculated.itpValue,
+        notaria: form.notaria,
+        registro: form.registro,
+        gestoria: form.gestoria,
+        tasacion: form.tasacion,
+        honorariosGSCapital: form.honorariosGSCapital,
+        mortgageAmount: calculated.importeHipoteca,
+        monthlyPayment: calculated.cuotaMensual,
+        zone: form.zone,
+        mortgageSnapshot: {
+          monthlyIncome: form.monthlyIncome,
+          existingDebts: form.existingDebts,
+          numTitulares: form.numTitulares,
+          financiacionPct: form.financiacionPct,
+          housePrice: calculated.precioMaximoVivienda,
+          loanTerm: form.loanTerm,
+          hipotecaInterestRate: form.hipotecaInterestRate,
+          availableSavings: form.availableSavings,
+          existingLoanPayment: form.existingLoanPayment,
+          itpPercentage: form.itpPercentage,
+          cuotaMensual: calculated.cuotaMensual,
+          importeHipoteca: calculated.importeHipoteca,
+          precioMaximoVivienda: calculated.precioMaximoVivienda,
+          ahorrosNecesarios: calculated.ahorrosNecesarios,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+    }
   }
 
   async function handleSaveToClient() {
@@ -83,29 +129,50 @@ export function HipotecaTab() {
       alert("Calcule primero la hipoteca.");
       return;
     }
-    await updateClient({
-      ...currentClient,
-      income: form.monthlyIncome,
-      debts: form.existingDebts,
-      numTitulares: form.numTitulares,
-      financiacionPct: String(form.financiacionPct),
-      housePrice: result.precioMaximoVivienda,
-      loanTerm: form.loanTerm,
-      hipotecaInterestRate: form.hipotecaInterestRate,
-      availableSavings: form.availableSavings,
-      existingLoanPayment: form.existingLoanPayment,
-      itpPercentage: form.itpPercentage,
-      itpValue: result.itpValue,
-      notaria: form.notaria,
-      registro: form.registro,
-      gestoria: form.gestoria,
-      tasacion: form.tasacion,
-      honorariosGSCapital: form.honorariosGSCapital,
-      mortgageAmount: result.importeHipoteca,
-      monthlyPayment: result.cuotaMensual,
-      zone: form.zone,
-    });
-    alert(`Datos de hipoteca guardados para "${currentClient.name}".`);
+    try {
+      await updateClient({
+        ...currentClient,
+        income: form.monthlyIncome,
+        debts: form.existingDebts,
+        numTitulares: form.numTitulares,
+        financiacionPct: String(form.financiacionPct),
+        housePrice: result.precioMaximoVivienda,
+        loanTerm: form.loanTerm,
+        hipotecaInterestRate: form.hipotecaInterestRate,
+        availableSavings: form.availableSavings,
+        existingLoanPayment: form.existingLoanPayment,
+        itpPercentage: form.itpPercentage,
+        itpValue: result.itpValue,
+        notaria: form.notaria,
+        registro: form.registro,
+        gestoria: form.gestoria,
+        tasacion: form.tasacion,
+        honorariosGSCapital: form.honorariosGSCapital,
+        mortgageAmount: result.importeHipoteca,
+        monthlyPayment: result.cuotaMensual,
+        zone: form.zone,
+        mortgageSnapshot: {
+          monthlyIncome: form.monthlyIncome,
+          existingDebts: form.existingDebts,
+          numTitulares: form.numTitulares,
+          financiacionPct: form.financiacionPct,
+          housePrice: result.precioMaximoVivienda,
+          loanTerm: form.loanTerm,
+          hipotecaInterestRate: form.hipotecaInterestRate,
+          availableSavings: form.availableSavings,
+          existingLoanPayment: form.existingLoanPayment,
+          itpPercentage: form.itpPercentage,
+          cuotaMensual: result.cuotaMensual,
+          importeHipoteca: result.importeHipoteca,
+          precioMaximoVivienda: result.precioMaximoVivienda,
+          ahorrosNecesarios: result.ahorrosNecesarios,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      alert(`Datos de hipoteca guardados para "${currentClient.name}".`);
+    } catch {
+      alert("No se pudo guardar en Supabase.");
+    }
   }
 
   return (

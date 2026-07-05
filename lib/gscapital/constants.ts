@@ -21,6 +21,7 @@ export const TABS = [
   { id: "prestamo", label: "Préstamo Personal" },
   { id: "database", label: "Base de Datos Clientes" },
   { id: "colaboradores", label: "Colaboradores de Banca" },
+  { id: "inmobiliarios", label: "Colaboradores Inmobiliarios" },
   { id: "tasadores", label: "Tasadores" },
   { id: "configuracion", label: "Configuración" },
 ] as const;

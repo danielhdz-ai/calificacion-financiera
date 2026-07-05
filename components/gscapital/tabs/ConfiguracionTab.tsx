@@ -4,12 +4,18 @@ import { useGSCapital } from "@/components/gscapital/GSCapitalContext";
 import { Panel, PrimaryButton, SecondaryButton } from "@/components/gscapital/ui/Panel";
 
 export function ConfiguracionTab() {
-  const { clients, collaborators, tasadores, replaceAllData, refreshAll } =
-    useGSCapital();
+  const {
+    clients,
+    collaborators,
+    inmobiliarios,
+    tasadores,
+    replaceAllData,
+    refreshAll,
+  } = useGSCapital();
 
   function exportJson() {
     const blob = new Blob(
-      [JSON.stringify({ clients, collaborators, tasadores }, null, 2)],
+      [JSON.stringify({ clients, collaborators, inmobiliarios, tasadores }, null, 2)],
       { type: "application/json" },
     );
     const url = URL.createObjectURL(blob);
@@ -29,6 +35,7 @@ export function ConfiguracionTab() {
         const data = JSON.parse(String(reader.result)) as {
           clients?: typeof clients;
           collaborators?: typeof collaborators;
+          inmobiliarios?: typeof inmobiliarios;
           tasadores?: typeof tasadores;
         };
         if (!confirm("¿Importar datos? Esto reemplazará la información actual.")) {
@@ -37,9 +44,10 @@ export function ConfiguracionTab() {
         await replaceAllData({
           clients: data.clients ?? [],
           collaborators: data.collaborators ?? [],
+          inmobiliarios: data.inmobiliarios ?? [],
           tasadores: data.tasadores ?? [],
         });
-        alert("Datos importados correctamente.");
+        alert("Datos importados correctamente en Supabase.");
       } catch {
         alert("Archivo JSON inválido.");
       }
@@ -56,7 +64,7 @@ export function ConfiguracionTab() {
           <div>
             <h3 className="mb-3 text-lg font-semibold">Exportar Datos</h3>
             <p className="mb-4 text-gray-600 dark:text-gray-300">
-              Guarda una copia de seguridad de clientes, colaboradores y tasadores.
+              Guarda una copia de clientes, colaboradores bancarios, inmobiliarios y tasadores.
             </p>
             <PrimaryButton type="button" onClick={exportJson}>
               Exportar a JSON
@@ -65,7 +73,7 @@ export function ConfiguracionTab() {
           <div>
             <h3 className="mb-3 text-lg font-semibold">Importar Datos</h3>
             <p className="mb-4 text-gray-600 dark:text-gray-300">
-              Carga datos desde un archivo JSON. Esto reemplazará los datos actuales.
+              Carga datos desde JSON y sincronízalos con Supabase.
             </p>
             <label className="inline-block">
               <PrimaryButton type="button">Importar desde JSON</PrimaryButton>
@@ -76,7 +84,7 @@ export function ConfiguracionTab() {
         <div className="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
           <h3 className="mb-3 text-lg font-semibold">Sincronización</h3>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Recarga los datos desde Supabase si trabajas en varios dispositivos.
+            Recarga todos los datos desde Supabase.
           </p>
           <SecondaryButton type="button" onClick={() => void refreshAll()}>
             Recargar desde Supabase

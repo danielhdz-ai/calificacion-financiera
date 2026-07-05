@@ -59,11 +59,15 @@ export function AsesoramientoTab() {
     useGSCapital();
   const [formKey, setFormKey] = useState(0);
 
-  function handleNewClient() {
+  async function handleNewClient() {
     const name = prompt("Ingrese el nombre del nuevo cliente:");
     if (!name?.trim()) return;
-    createClient(name.trim());
-    setFormKey((value) => value + 1);
+    try {
+      await createClient(name.trim());
+      setFormKey((value) => value + 1);
+    } catch {
+      alert("No se pudo guardar el cliente en Supabase.");
+    }
   }
 
   async function handleSave(event: React.FormEvent<HTMLFormElement>) {
@@ -74,8 +78,12 @@ export function AsesoramientoTab() {
     }
     const form = new FormData(event.currentTarget);
     const updated = buildClientFromForm(currentClient, form);
-    await updateClient(updated);
-    alert("Información del cliente guardada correctamente.");
+    try {
+      await updateClient(updated);
+      alert("Información del cliente guardada correctamente.");
+    } catch {
+      alert("No se pudo guardar en Supabase.");
+    }
   }
 
   function handleClear() {

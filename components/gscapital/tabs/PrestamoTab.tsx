@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useGSCapital } from "@/components/gscapital/GSCapitalContext";
 import {
   Field,
   Input,
@@ -11,6 +12,7 @@ import { calculatePersonalLoan } from "@/lib/gscapital/calculators/personal-loan
 import { formatCurrency } from "@/lib/gscapital/format";
 
 export function PrestamoTab() {
+  const { currentClient, updateClient } = useGSCapital();
   const [loanAmount, setLoanAmount] = useState(18000);
   const [loanTermYears, setLoanTermYears] = useState(4);
   const [tin, setTin] = useState(6.5);
@@ -22,11 +24,46 @@ export function PrestamoTab() {
     [loanAmount, loanTermYears, tin, tae],
   );
 
+  async function handleSaveToClient() {
+    if (!currentClient) {
+      alert("Seleccione o cree un cliente en Asesoramiento.");
+      return;
+    }
+    try {
+      await updateClient({
+        ...currentClient,
+        personalLoan: {
+          purpose,
+          loanAmount,
+          loanTermYears,
+          tin,
+          tae,
+          cuotaMensual: result.cuotaMensual,
+          totalAdeudado: result.totalAdeudado,
+          costeTotalCredito: result.costeTotalCredito,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      alert(`Simulación de préstamo guardada para "${currentClient.name}".`);
+    } catch {
+      alert("No se pudo guardar en Supabase.");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
         Calculadora de Préstamo Personal
       </h2>
+      {currentClient ? (
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Cliente activo: <strong>{currentClient.name}</strong> — los datos se guardarán en su ficha.
+        </p>
+      ) : (
+        <p className="text-sm text-amber-700 dark:text-amber-300">
+          Seleccione un cliente en Asesoramiento para guardar la simulación en Supabase.
+        </p>
+      )}
       <Panel>
         <h3 className="mb-4 text-lg font-semibold">¿Para qué necesitas el préstamo?</h3>
         <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -73,7 +110,11 @@ export function PrestamoTab() {
             </tbody>
           </table>
         </div>
-        <div className="mt-6"><PrimaryButton type="button">Recalcular</PrimaryButton></div>
+        <div className="mt-6 flex gap-3">
+          <PrimaryButton type="button" onClick={() => void handleSaveToClient()}>
+            Guardar simulación al cliente
+          </PrimaryButton>
+        </div>
       </Panel>
     </div>
   );

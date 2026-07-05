@@ -12,16 +12,18 @@ import {
 import {
   loadClients,
   loadCollaborators,
+  loadInmobiliarios,
   loadTasadores,
-  saveLocal,
   syncClients,
   syncCollaborators,
+  syncInmobiliarios,
   syncTasadores,
 } from "@/lib/gscapital/api";
 import { createEmptyClient } from "@/lib/gscapital/client-factory";
 import type {
   Client,
   Collaborator,
+  Inmobiliario,
   TabId,
   Tasador,
 } from "@/lib/gscapital/types";
@@ -35,19 +37,22 @@ type GSCapitalContextValue = {
   currentClient: Client | null;
   setCurrentClient: (client: Client | null) => void;
   collaborators: Collaborator[];
+  inmobiliarios: Inmobiliario[];
   tasadores: Tasador[];
   loading: boolean;
-  syncError: string | null;
-  createClient: (name: string) => void;
+  createClient: (name: string) => Promise<void>;
   updateClient: (client: Client) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
   saveCollaborator: (collaborator: Collaborator) => Promise<void>;
   deleteCollaborator: (id: string) => Promise<void>;
+  saveInmobiliario: (inmobiliario: Inmobiliario) => Promise<void>;
+  deleteInmobiliario: (id: string) => Promise<void>;
   saveTasador: (tasador: Tasador) => Promise<void>;
   deleteTasador: (id: string) => Promise<void>;
   replaceAllData: (payload: {
     clients: Client[];
     collaborators: Collaborator[];
+    inmobiliarios: Inmobiliario[];
     tasadores: Tasador[];
   }) => Promise<void>;
   refreshAll: () => Promise<void>;
@@ -61,24 +66,24 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
   const [clients, setClients] = useState<Client[]>([]);
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [inmobiliarios, setInmobiliarios] = useState<Inmobiliario[]>([]);
   const [tasadores, setTasadores] = useState<Tasador[]>([]);
   const [loading, setLoading] = useState(true);
-  const [syncError, setSyncError] = useState<string | null>(null);
 
   const refreshAll = useCallback(async () => {
     setLoading(true);
-    setSyncError(null);
-    try {
-      const [loadedClients, loadedCollaborators, loadedTasadores] =
-        await Promise.all([loadClients(), loadCollaborators(), loadTasadores()]);
-      setClients(loadedClients);
-      setCollaborators(loadedCollaborators);
-      setTasadores(loadedTasadores);
-    } catch (error) {
-      setSyncError(error instanceof Error ? error.message : "Error al cargar datos");
-    } finally {
-      setLoading(false);
-    }
+    const [loadedClients, loadedCollaborators, loadedInmobiliarios, loadedTasadores] =
+      await Promise.all([
+        loadClients(),
+        loadCollaborators(),
+        loadInmobiliarios(),
+        loadTasadores(),
+      ]);
+    setClients(loadedClients);
+    setCollaborators(loadedCollaborators);
+    setInmobiliarios(loadedInmobiliarios);
+    setTasadores(loadedTasadores);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -102,18 +107,21 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
     await syncCollaborators(next);
   }, []);
 
+  const persistInmobiliarios = useCallback(async (next: Inmobiliario[]) => {
+    setInmobiliarios(next);
+    await syncInmobiliarios(next);
+  }, []);
+
   const persistTasadores = useCallback(async (next: Tasador[]) => {
     setTasadores(next);
     await syncTasadores(next);
   }, []);
 
   const createClient = useCallback(
-    (name: string) => {
+    async (name: string) => {
       const client = createEmptyClient(name);
       const next = [...clients, client];
-      void persistClients(next).catch((error) =>
-        setSyncError(error instanceof Error ? error.message : "Error al guardar"),
-      );
+      await persistClients(next);
       setCurrentClient(client);
     },
     [clients, persistClients],
@@ -162,6 +170,25 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
     [collaborators, persistCollaborators],
   );
 
+  const saveInmobiliario = useCallback(
+    async (inmobiliario: Inmobiliario) => {
+      const next = inmobiliarios.some((item) => item.id === inmobiliario.id)
+        ? inmobiliarios.map((item) =>
+            item.id === inmobiliario.id ? inmobiliario : item,
+          )
+        : [...inmobiliarios, inmobiliario];
+      await persistInmobiliarios(next);
+    },
+    [inmobiliarios, persistInmobiliarios],
+  );
+
+  const deleteInmobiliario = useCallback(
+    async (id: string) => {
+      await persistInmobiliarios(inmobiliarios.filter((item) => item.id !== id));
+    },
+    [inmobiliarios, persistInmobiliarios],
+  );
+
   const saveTasador = useCallback(
     async (tasador: Tasador) => {
       const next = tasadores.some((item) => item.id === tasador.id)
@@ -183,16 +210,18 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
     async (payload: {
       clients: Client[];
       collaborators: Collaborator[];
+      inmobiliarios: Inmobiliario[];
       tasadores: Tasador[];
     }) => {
       await Promise.all([
         persistClients(payload.clients),
         persistCollaborators(payload.collaborators),
+        persistInmobiliarios(payload.inmobiliarios),
         persistTasadores(payload.tasadores),
       ]);
       setCurrentClient(null);
     },
-    [persistClients, persistCollaborators, persistTasadores],
+    [persistClients, persistCollaborators, persistInmobiliarios, persistTasadores],
   );
 
   const value = useMemo(
@@ -205,14 +234,16 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
       currentClient,
       setCurrentClient,
       collaborators,
+      inmobiliarios,
       tasadores,
       loading,
-      syncError,
       createClient,
       updateClient,
       deleteClient,
       saveCollaborator,
       deleteCollaborator,
+      saveInmobiliario,
+      deleteInmobiliario,
       saveTasador,
       deleteTasador,
       replaceAllData,
@@ -224,14 +255,16 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
       clients,
       currentClient,
       collaborators,
+      inmobiliarios,
       tasadores,
       loading,
-      syncError,
       createClient,
       updateClient,
       deleteClient,
       saveCollaborator,
       deleteCollaborator,
+      saveInmobiliario,
+      deleteInmobiliario,
       saveTasador,
       deleteTasador,
       replaceAllData,
@@ -250,12 +283,4 @@ export function useGSCapital() {
     throw new Error("useGSCapital debe usarse dentro de GSCapitalProvider");
   }
   return context;
-}
-
-export function exportBackupLocally(payload: {
-  clients: Client[];
-  collaborators: Collaborator[];
-  tasadores: Tasador[];
-}) {
-  saveLocal("bdfinanciera_backup", payload);
 }

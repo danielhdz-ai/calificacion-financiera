@@ -1,4 +1,4 @@
--- GSCAPITAL: esquema completo
+-- GSCAPITAL: esquema completo (ejecutar en Supabase SQL Editor)
 
 create table if not exists public.clients (
   id text primary key,
@@ -8,6 +8,13 @@ create table if not exists public.clients (
 );
 
 create table if not exists public.collaborators (
+  id text primary key,
+  data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.inmobiliarios (
   id text primary key,
   data jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
@@ -39,6 +46,11 @@ create trigger collaborators_set_updated_at
   before update on public.collaborators
   for each row execute function public.set_updated_at();
 
+drop trigger if exists inmobiliarios_set_updated_at on public.inmobiliarios;
+create trigger inmobiliarios_set_updated_at
+  before update on public.inmobiliarios
+  for each row execute function public.set_updated_at();
+
 drop trigger if exists tasadores_set_updated_at on public.tasadores;
 create trigger tasadores_set_updated_at
   before update on public.tasadores
@@ -46,12 +58,12 @@ create trigger tasadores_set_updated_at
 
 alter table public.clients enable row level security;
 alter table public.collaborators enable row level security;
+alter table public.inmobiliarios enable row level security;
 alter table public.tasadores enable row level security;
 
 drop policy if exists "Allow public read clients" on public.clients;
 create policy "Allow public read clients"
   on public.clients for select to anon, authenticated using (true);
-
 drop policy if exists "Allow public write clients" on public.clients;
 create policy "Allow public write clients"
   on public.clients for all to anon, authenticated using (true) with check (true);
@@ -59,15 +71,20 @@ create policy "Allow public write clients"
 drop policy if exists "Allow public read collaborators" on public.collaborators;
 create policy "Allow public read collaborators"
   on public.collaborators for select to anon, authenticated using (true);
-
 drop policy if exists "Allow public write collaborators" on public.collaborators;
 create policy "Allow public write collaborators"
   on public.collaborators for all to anon, authenticated using (true) with check (true);
 
+drop policy if exists "Allow public read inmobiliarios" on public.inmobiliarios;
+create policy "Allow public read inmobiliarios"
+  on public.inmobiliarios for select to anon, authenticated using (true);
+drop policy if exists "Allow public write inmobiliarios" on public.inmobiliarios;
+create policy "Allow public write inmobiliarios"
+  on public.inmobiliarios for all to anon, authenticated using (true) with check (true);
+
 drop policy if exists "Allow public read tasadores" on public.tasadores;
 create policy "Allow public read tasadores"
   on public.tasadores for select to anon, authenticated using (true);
-
 drop policy if exists "Allow public write tasadores" on public.tasadores;
 create policy "Allow public write tasadores"
   on public.tasadores for all to anon, authenticated using (true) with check (true);

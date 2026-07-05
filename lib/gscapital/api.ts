@@ -1,4 +1,9 @@
-import type { Client, Collaborator, Tasador } from "@/lib/gscapital/types";
+import type {
+  Client,
+  Collaborator,
+  Inmobiliario,
+  Tasador,
+} from "@/lib/gscapital/types";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -9,8 +14,16 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function loadSafe<T>(url: string): Promise<T[]> {
+  try {
+    return await fetchJson<T[]>(url);
+  } catch {
+    return [];
+  }
+}
+
 export async function loadClients(): Promise<Client[]> {
-  return fetchJson<Client[]>("/api/clients");
+  return loadSafe<Client>("/api/clients");
 }
 
 export async function syncClients(clients: Client[]): Promise<void> {
@@ -22,7 +35,7 @@ export async function syncClients(clients: Client[]): Promise<void> {
 }
 
 export async function loadCollaborators(): Promise<Collaborator[]> {
-  return fetchJson<Collaborator[]>("/api/collaborators");
+  return loadSafe<Collaborator>("/api/collaborators");
 }
 
 export async function syncCollaborators(collaborators: Collaborator[]): Promise<void> {
@@ -33,8 +46,20 @@ export async function syncCollaborators(collaborators: Collaborator[]): Promise<
   });
 }
 
+export async function loadInmobiliarios(): Promise<Inmobiliario[]> {
+  return loadSafe<Inmobiliario>("/api/inmobiliarios");
+}
+
+export async function syncInmobiliarios(inmobiliarios: Inmobiliario[]): Promise<void> {
+  await fetchJson("/api/inmobiliarios", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ inmobiliarios }),
+  });
+}
+
 export async function loadTasadores(): Promise<Tasador[]> {
-  return fetchJson<Tasador[]>("/api/tasadores");
+  return loadSafe<Tasador>("/api/tasadores");
 }
 
 export async function syncTasadores(tasadores: Tasador[]): Promise<void> {
