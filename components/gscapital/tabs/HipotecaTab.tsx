@@ -11,6 +11,7 @@ import {
 import { calculateMortgage } from "@/lib/gscapital/calculators/mortgage";
 import { formatCurrency } from "@/lib/gscapital/format";
 import { calculateItpPercentage } from "@/lib/gscapital/itp";
+import { getOwnersAgesString, getOwnerCount } from "@/lib/gscapital/owners";
 import type { Client, MortgageInput, MortgageResult } from "@/lib/gscapital/types";
 
 const DEFAULT_INTEREST_RATE = 3;
@@ -24,7 +25,7 @@ function buildFormFromClient(client: Client | null): MortgageInput {
     existingDebts: client?.debts ?? 0,
     availableSavings: client?.availableSavings ?? 0,
     housePrice: client?.housePrice ?? 0,
-    numTitulares: (client?.numTitulares as "1" | "2") ?? "1",
+    numTitulares: (client?.numTitulares as "1" | "2" | "3") ?? String(getOwnerCount(client)) as "1" | "2" | "3",
     financiacionPct: Number(client?.financiacionPct ?? 90),
     loanTerm: client?.loanTerm ?? 30,
     hipotecaInterestRate: client?.hipotecaInterestRate || DEFAULT_INTEREST_RATE,
@@ -59,8 +60,11 @@ export function HipotecaTab() {
   }, [currentClient?.id]);
 
   const autoItpPercentage = useMemo(
-    () => calculateItpPercentage(currentClient?.personalData?.age),
-    [currentClient?.personalData?.age],
+    () =>
+      currentClient
+        ? calculateItpPercentage(getOwnersAgesString(currentClient))
+        : 10,
+    [currentClient],
   );
 
   useEffect(() => {
@@ -215,9 +219,10 @@ export function HipotecaTab() {
           <Field label="Ingresos Mensuales Netos (€)"><Input type="number" value={form.monthlyIncome} onChange={(e) => updateField("monthlyIncome", Number(e.target.value))} /></Field>
           <Field label="Deudas Mensuales Existentes (€)"><Input type="number" value={form.existingDebts} onChange={(e) => updateField("existingDebts", Number(e.target.value))} /></Field>
           <Field label="Número de Titulares">
-            <div className="flex gap-4 pt-2">
+            <div className="flex flex-wrap gap-4 pt-2">
               <label><input type="radio" checked={form.numTitulares === "1"} onChange={() => updateField("numTitulares", "1")} /> Un Titular (30%)</label>
               <label><input type="radio" checked={form.numTitulares === "2"} onChange={() => updateField("numTitulares", "2")} /> Dos Titulares (35%)</label>
+              <label><input type="radio" checked={form.numTitulares === "3"} onChange={() => updateField("numTitulares", "3")} /> Tres Titulares (35%)</label>
             </div>
           </Field>
           <Field label="Porcentaje de Financiación (%)"><Input type="number" value={form.financiacionPct} onChange={(e) => updateField("financiacionPct", Number(e.target.value))} /></Field>

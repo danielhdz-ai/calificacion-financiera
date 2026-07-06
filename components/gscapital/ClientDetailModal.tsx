@@ -3,7 +3,12 @@
 import { AGENT_INFO } from "@/lib/gscapital/constants";
 import { downloadClientSummary } from "@/lib/gscapital/client-document";
 import { formatCurrency } from "@/lib/gscapital/format";
-import type { Client } from "@/lib/gscapital/types";
+import {
+  formatTitularesLabel,
+  getOperationDisplayName,
+  getOwnersFromClient,
+} from "@/lib/gscapital/owners";
+import type { Client, OwnerData } from "@/lib/gscapital/types";
 
 function Section({
   title,
@@ -32,6 +37,26 @@ function Row({ label, value }: { label: string; value?: string | number | null }
   );
 }
 
+function OwnerSection({ owner, index }: { owner: OwnerData; index: number }) {
+  return (
+    <Section title={`Titular ${index + 1}`}>
+      <Row label="Nombre" value={owner.fullName} />
+      <Row label="Edad" value={owner.age} />
+      <Row label="Nacionalidad" value={owner.nationality} />
+      <Row label="Teléfono" value={owner.phone} />
+      <Row label="Email" value={owner.email} />
+      <Row label="DNI/NIE" value={owner.dni} />
+      <Row label="Banco" value={owner.bank} />
+      <Row label="Empresa" value={owner.company} />
+      <Row label="Contrato" value={owner.contractType} />
+      <Row label="Antigüedad" value={owner.seniority} />
+      <Row label="Nómina" value={formatCurrency(owner.payslips)} />
+      <Row label="Ahorros" value={formatCurrency(owner.savings)} />
+      <Row label="Préstamos (cuota)" value={formatCurrency(owner.loans)} />
+    </Section>
+  );
+}
+
 export function ClientDetailModal({
   client,
   onClose,
@@ -39,10 +64,10 @@ export function ClientDetailModal({
   client: Client;
   onClose: () => void;
 }) {
-  const pd = client.personalData ?? {};
   const ai = client.additionalInfo ?? {};
   const ms = client.mortgageSnapshot;
   const pl = client.personalLoan;
+  const owners = getOwnersFromClient(client);
   const shortfall =
     ms?.shortfall ??
     (ms?.ahorrosNecesarios && ms.availableSavings !== undefined
@@ -61,7 +86,7 @@ export function ClientDetailModal({
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-              {client.name}
+              {getOperationDisplayName(client)}
             </h3>
             <p className="text-sm text-gray-500">
               {AGENT_INFO.company} — {AGENT_INFO.name}
@@ -77,20 +102,15 @@ export function ClientDetailModal({
         </div>
 
         <div className="space-y-6">
-          <Section title="Datos personales">
-            <Row label="Nombre" value={pd.fullName || client.name} />
-            <Row label="Edad" value={pd.age} />
-            <Row label="Nacionalidad" value={pd.nationality} />
-            <Row label="Teléfono" value={pd.phone} />
-            <Row label="Email" value={pd.email} />
-            <Row label="DNI/NIE" value={pd.dni} />
-            <Row label="Banco" value={pd.bank} />
-            <Row label="Empresa" value={pd.company} />
-            <Row label="Contrato" value={pd.contractType} />
-            <Row label="Antigüedad" value={pd.seniority} />
-            <Row label="Nóminas" value={formatCurrency(client.income)} />
-            <Row label="Ahorros" value={formatCurrency(client.availableSavings ?? pd.savings)} />
-            <Row label="Préstamos (cuota)" value={formatCurrency(client.debts)} />
+          {owners.map((owner, index) => (
+            <OwnerSection key={index} owner={owner} index={index} />
+          ))}
+
+          <Section title="Totales de la operación">
+            <Row label="Copropietarios" value={formatTitularesLabel(client.numTitulares)} />
+            <Row label="Ingresos totales" value={formatCurrency(client.income)} />
+            <Row label="Ahorros totales" value={formatCurrency(client.availableSavings)} />
+            <Row label="Deudas totales" value={formatCurrency(client.debts)} />
           </Section>
 
           <Section title="Información adicional">
@@ -109,7 +129,7 @@ export function ClientDetailModal({
           </Section>
 
           <Section title="Cálculo de hipoteca">
-            <Row label="Titulares" value={client.numTitulares === "2" ? "Dos (35%)" : "Uno (30%)"} />
+            <Row label="Titulares" value={formatTitularesLabel(client.numTitulares)} />
             <Row label="Financiación" value={client.financiacionPct ? `${client.financiacionPct}%` : undefined} />
             <Row label="Precio vivienda" value={formatCurrency(ms?.precioMaximoVivienda ?? client.housePrice)} />
             <Row label="Importe hipoteca" value={formatCurrency(ms?.importeHipoteca ?? client.mortgageAmount)} />
@@ -151,7 +171,7 @@ export function ClientDetailModal({
             onClick={() => downloadClientSummary(client)}
             className="rounded-md bg-blue-700 px-4 py-2 text-sm text-white hover:bg-blue-800"
           >
-            Descargar informe para el cliente
+            Descargar PDF para el cliente
           </button>
           <button
             type="button"

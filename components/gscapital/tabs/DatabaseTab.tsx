@@ -7,7 +7,15 @@ import { Field, Input, Panel, Select } from "@/components/gscapital/ui/Panel";
 import { WHATSAPP_MESSAGE_TEMPLATE } from "@/lib/gscapital/constants";
 import { downloadClientSummary } from "@/lib/gscapital/client-document";
 import { formatCurrency, getStatusColor } from "@/lib/gscapital/format";
+import {
+  formatNumTitulares,
+  getOperationDisplayName,
+  getOwnersFromClient,
+} from "@/lib/gscapital/owners";
 import type { Client } from "@/lib/gscapital/types";
+
+const actionButtonClass =
+  "text-white hover:underline dark:text-white";
 
 export function DatabaseTab() {
   const { clients, setCurrentClient, setActiveTab, deleteClient } = useGSCapital();
@@ -70,23 +78,47 @@ export function DatabaseTab() {
           <p className="py-8 text-center text-gray-500">No hay clientes en la base de datos.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1100px] border-collapse text-sm">
+            <table className="w-full min-w-[1200px] border-collapse text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-900">
-                  {["Cliente", "Zona", "Ingresos", "Deudas", "Titulares", "Financiación", "Precio Viv.", "Hipoteca", "Cuota", "Estado", "Acciones"].map((header) => (
-                    <th key={header} className="border border-gray-200 px-2 py-3 text-left dark:border-gray-600">{header}</th>
+                  {[
+                    "Cliente",
+                    "Zona",
+                    "Ingresos",
+                    "Deudas",
+                    "Titulares",
+                    "Financiación",
+                    "Ahorros",
+                    "Precio Viv.",
+                    "Hipoteca",
+                    "Cuota",
+                    "Estado",
+                    "Acciones",
+                  ].map((header) => (
+                    <th key={header} className="border border-gray-200 px-2 py-3 text-left dark:border-gray-600">
+                      {header}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((client) => (
                   <tr key={client.id}>
-                    <td className="border px-2 py-2 dark:border-gray-600">{client.name}</td>
-                    <td className="border px-2 py-2 dark:border-gray-600">{client.zone || client.additionalInfo?.zonesOfInterest || "-"}</td>
+                    <td className="border px-2 py-2 dark:border-gray-600">
+                      {getOperationDisplayName(client)}
+                    </td>
+                    <td className="border px-2 py-2 dark:border-gray-600">
+                      {client.zone || client.additionalInfo?.zonesOfInterest || "-"}
+                    </td>
                     <td className="border px-2 py-2 dark:border-gray-600">{formatCurrency(client.income)}</td>
                     <td className="border px-2 py-2 dark:border-gray-600">{formatCurrency(client.debts)}</td>
-                    <td className="border px-2 py-2 dark:border-gray-600">{client.numTitulares === "2" ? "Dos" : "Uno"}</td>
-                    <td className="border px-2 py-2 dark:border-gray-600">{client.financiacionPct}%</td>
+                    <td className="border px-2 py-2 dark:border-gray-600">
+                      {formatNumTitulares(client.numTitulares)}
+                    </td>
+                    <td className="border px-2 py-2 dark:border-gray-600">{client.financiacionPct ?? "-"}%</td>
+                    <td className="border px-2 py-2 dark:border-gray-600">
+                      {formatCurrency(client.availableSavings)}
+                    </td>
                     <td className="border px-2 py-2 dark:border-gray-600">{formatCurrency(client.housePrice)}</td>
                     <td className="border px-2 py-2 dark:border-gray-600">{formatCurrency(client.mortgageAmount)}</td>
                     <td className="border px-2 py-2 dark:border-gray-600">{formatCurrency(client.monthlyPayment)}</td>
@@ -97,11 +129,11 @@ export function DatabaseTab() {
                     </td>
                     <td className="border px-2 py-2 dark:border-gray-600">
                       <div className="flex flex-wrap gap-2">
-                        <button type="button" className="text-purple-600" onClick={() => setViewClient(client)}>Ver</button>
-                        <button type="button" className="text-indigo-600" onClick={() => downloadClientSummary(client)}>Descargar</button>
-                        <button type="button" className="text-blue-600" onClick={() => { setCurrentClient(client); setActiveTab("asesoramiento"); }}>Editar</button>
-                        <button type="button" className="text-green-600" onClick={() => openWhatsApp(client.personalData?.phone)}>WhatsApp</button>
-                        <button type="button" className="text-red-600" onClick={() => void deleteClient(client.id)}>Eliminar</button>
+                        <button type="button" className={actionButtonClass} onClick={() => setViewClient(client)}>Ver</button>
+                        <button type="button" className={actionButtonClass} onClick={() => downloadClientSummary(client)}>Descargar</button>
+                        <button type="button" className={actionButtonClass} onClick={() => { setCurrentClient(client); setActiveTab("asesoramiento"); }}>Editar</button>
+                        <button type="button" className={actionButtonClass} onClick={() => openWhatsApp(getOwnersFromClient(client)[0]?.phone)}>WhatsApp</button>
+                        <button type="button" className={actionButtonClass} onClick={() => void deleteClient(client.id)}>Eliminar</button>
                       </div>
                     </td>
                   </tr>

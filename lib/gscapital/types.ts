@@ -21,6 +21,8 @@ export type PersonalData = {
   loans?: string | number;
 };
 
+export type OwnerData = PersonalData;
+
 export type AdditionalInfo = {
   children?: string;
   properties?: string;
@@ -54,6 +56,7 @@ export type Client = {
   loanTerm?: number;
   existingLoanPayment?: number;
   status: ClientStatus;
+  owners?: OwnerData[];
   personalData?: PersonalData;
   additionalInfo?: AdditionalInfo;
   pdfData?: string | null;
@@ -138,7 +141,7 @@ export type MortgageInput = {
   zone: string;
   monthlyIncome: number;
   existingDebts: number;
-  numTitulares: "1" | "2";
+  numTitulares: "1" | "2" | "3";
   financiacionPct: number;
   housePrice: number;
   loanTerm: number;

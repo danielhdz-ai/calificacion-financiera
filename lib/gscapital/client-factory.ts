@@ -25,6 +25,16 @@ export function createEmptyClient(name: string): Client {
     loanTerm: 30,
     existingLoanPayment: 0,
     status: "pendiente",
+    owners: [
+      {
+        fullName: name.trim(),
+        payslips: "2000",
+        savings: "0",
+        loans: "0",
+        contractType: "",
+        seniority: "",
+      },
+    ],
     personalData: {
       fullName: name.trim(),
       payslips: "2000",
