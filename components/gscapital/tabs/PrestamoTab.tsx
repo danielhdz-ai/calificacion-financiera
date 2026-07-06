@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGSCapital } from "@/components/gscapital/GSCapitalContext";
 import {
   Field,
@@ -12,12 +12,21 @@ import { calculatePersonalLoan } from "@/lib/gscapital/calculators/personal-loan
 import { formatCurrency } from "@/lib/gscapital/format";
 
 export function PrestamoTab() {
-  const { currentClient, updateClient } = useGSCapital();
+  const { currentClient, updateClient, pendingLoanAmount, setPendingLoanAmount } =
+    useGSCapital();
   const [loanAmount, setLoanAmount] = useState(18000);
   const [loanTermYears, setLoanTermYears] = useState(4);
   const [tin, setTin] = useState(6.5);
   const [tae, setTae] = useState(6.7);
   const [purpose, setPurpose] = useState("reforma");
+
+  useEffect(() => {
+    if (pendingLoanAmount && pendingLoanAmount >= 6000) {
+      setLoanAmount(pendingLoanAmount);
+      setPurpose("otros");
+      setPendingLoanAmount(null);
+    }
+  }, [pendingLoanAmount, setPendingLoanAmount]);
 
   const result = useMemo(
     () => calculatePersonalLoan({ loanAmount, loanTermYears, tin, tae }),
@@ -57,7 +66,10 @@ export function PrestamoTab() {
       </h2>
       {currentClient ? (
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Cliente activo: <strong>{currentClient.name}</strong> — los datos se guardarán en su ficha.
+          Cliente activo: <strong>{currentClient.name}</strong>
+          {pendingLoanAmount ? (
+            <> — importe sugerido por hipoteca: <strong>{pendingLoanAmount.toLocaleString("es-ES")} €</strong></>
+          ) : null}
         </p>
       ) : (
         <p className="text-sm text-amber-700 dark:text-amber-300">

@@ -1,77 +1,101 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGSCapital } from "@/components/gscapital/GSCapitalContext";
 import {
   Field,
   Input,
   Panel,
   PrimaryButton,
-  SecondaryButton,
 } from "@/components/gscapital/ui/Panel";
 import { calculateMortgage } from "@/lib/gscapital/calculators/mortgage";
 import { formatCurrency } from "@/lib/gscapital/format";
-import type { MortgageInput, MortgageResult } from "@/lib/gscapital/types";
+import { calculateItpPercentage } from "@/lib/gscapital/itp";
+import type { Client, MortgageInput, MortgageResult } from "@/lib/gscapital/types";
 
-const defaultForm: MortgageInput = {
-  clientName: "",
-  zone: "",
-  monthlyIncome: 2000,
-  existingDebts: 0,
-  numTitulares: "1",
-  financiacionPct: 90,
-  housePrice: 0,
-  loanTerm: 30,
-  hipotecaInterestRate: 3,
-  availableSavings: 0,
-  existingLoanPayment: 0,
-  itpPercentage: 10,
-  notaria: 600,
-  registro: 400,
-  gestoria: 300,
-  tasacion: 350,
-  honorariosGSCapital: 0,
-};
+const DEFAULT_INTEREST_RATE = 3;
+
+function buildFormFromClient(client: Client | null): MortgageInput {
+  const itpPercentage = calculateItpPercentage(client?.personalData?.age);
+  return {
+    clientName: client?.name ?? "",
+    zone: client?.zone ?? "",
+    monthlyIncome: client?.income ?? 2000,
+    existingDebts: client?.debts ?? 0,
+    availableSavings: client?.availableSavings ?? 0,
+    housePrice: client?.housePrice ?? 0,
+    numTitulares: (client?.numTitulares as "1" | "2") ?? "1",
+    financiacionPct: Number(client?.financiacionPct ?? 90),
+    loanTerm: client?.loanTerm ?? 30,
+    hipotecaInterestRate: client?.hipotecaInterestRate || DEFAULT_INTEREST_RATE,
+    existingLoanPayment: client?.existingLoanPayment ?? 0,
+    itpPercentage: client?.itpPercentage ?? itpPercentage,
+    notaria: client?.notaria ?? 600,
+    registro: client?.registro ?? 400,
+    gestoria: client?.gestoria ?? 300,
+    tasacion: client?.tasacion ?? 350,
+    honorariosGSCapital: client?.honorariosGSCapital ?? 0,
+  };
+}
 
 export function HipotecaTab() {
-  const { currentClient, updateClient } = useGSCapital();
-  const [form, setForm] = useState<MortgageInput>(() => ({
-    ...defaultForm,
-    clientName: currentClient?.name ?? "",
-    zone: currentClient?.zone ?? "",
-    monthlyIncome: currentClient?.income ?? 2000,
-    existingDebts: currentClient?.debts ?? 0,
-    availableSavings: currentClient?.availableSavings ?? 0,
-    housePrice: currentClient?.housePrice ?? 0,
-    numTitulares: (currentClient?.numTitulares as "1" | "2") ?? "1",
-    financiacionPct: Number(currentClient?.financiacionPct ?? 90),
-    loanTerm: currentClient?.loanTerm ?? 30,
-    hipotecaInterestRate: currentClient?.hipotecaInterestRate ?? 3,
-    existingLoanPayment: currentClient?.existingLoanPayment ?? 0,
-    itpPercentage: currentClient?.itpPercentage ?? 10,
-    notaria: currentClient?.notaria ?? 600,
-    registro: currentClient?.registro ?? 400,
-    gestoria: currentClient?.gestoria ?? 300,
-    tasacion: currentClient?.tasacion ?? 350,
-    honorariosGSCapital: currentClient?.honorariosGSCapital ?? 0,
-  }));
+  const { currentClient, updateClient, setActiveTab, setPendingLoanAmount } =
+    useGSCapital();
+  const [form, setForm] = useState<MortgageInput>(() =>
+    buildFormFromClient(currentClient),
+  );
+  const [interestRateInput, setInterestRateInput] = useState(
+    String(currentClient?.hipotecaInterestRate || DEFAULT_INTEREST_RATE),
+  );
   const [result, setResult] = useState<MortgageResult | null>(null);
 
-  const itpValue = useMemo(
-    () => form.housePrice * (form.itpPercentage / 100),
-    [form.housePrice, form.itpPercentage],
+  useEffect(() => {
+    const nextForm = buildFormFromClient(currentClient);
+    setForm(nextForm);
+    setInterestRateInput(
+      String(currentClient?.hipotecaInterestRate || DEFAULT_INTEREST_RATE),
+    );
+    setResult(null);
+  }, [currentClient?.id]);
+
+  const autoItpPercentage = useMemo(
+    () => calculateItpPercentage(currentClient?.personalData?.age),
+    [currentClient?.personalData?.age],
   );
+
+  useEffect(() => {
+    setForm((prev) => ({ ...prev, itpPercentage: autoItpPercentage }));
+  }, [autoItpPercentage]);
+
+  const effectiveHousePrice = form.housePrice || result?.precioMaximoVivienda || 0;
+  const itpValue = effectiveHousePrice * (form.itpPercentage / 100);
+  const itpBonusNote =
+    autoItpPercentage < 10
+      ? "Bonificación joven (<35 años): ITP al 5%"
+      : "ITP estándar: 10%";
 
   function updateField<K extends keyof MortgageInput>(key: K, value: MortgageInput[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function getInterestRate(): number {
+    const parsed = parseFloat(interestRateInput.replace(",", "."));
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_INTEREST_RATE;
+  }
+
   function handleCalculate() {
-    const calculated = calculateMortgage({ ...form, housePrice: form.housePrice || 0 });
+    const interestRate = getInterestRate();
+    const input = {
+      ...form,
+      hipotecaInterestRate: interestRate,
+      housePrice: form.housePrice || 0,
+    };
+    const calculated = calculateMortgage(input);
     const nextHousePrice =
       !form.housePrice && calculated.precioMaximoVivienda > 0
         ? Math.round(calculated.precioMaximoVivienda)
         : form.housePrice;
+
     if (nextHousePrice !== form.housePrice) {
       updateField("housePrice", nextHousePrice);
     }
@@ -86,7 +110,7 @@ export function HipotecaTab() {
         financiacionPct: String(form.financiacionPct),
         housePrice: calculated.precioMaximoVivienda,
         loanTerm: form.loanTerm,
-        hipotecaInterestRate: form.hipotecaInterestRate,
+        hipotecaInterestRate: interestRate,
         availableSavings: form.availableSavings,
         existingLoanPayment: form.existingLoanPayment,
         itpPercentage: form.itpPercentage,
@@ -106,7 +130,7 @@ export function HipotecaTab() {
           financiacionPct: form.financiacionPct,
           housePrice: calculated.precioMaximoVivienda,
           loanTerm: form.loanTerm,
-          hipotecaInterestRate: form.hipotecaInterestRate,
+          hipotecaInterestRate: interestRate,
           availableSavings: form.availableSavings,
           existingLoanPayment: form.existingLoanPayment,
           itpPercentage: form.itpPercentage,
@@ -114,22 +138,26 @@ export function HipotecaTab() {
           importeHipoteca: calculated.importeHipoteca,
           precioMaximoVivienda: calculated.precioMaximoVivienda,
           ahorrosNecesarios: calculated.ahorrosNecesarios,
+          shortfall: calculated.shortfall,
           updatedAt: new Date().toISOString(),
         },
       });
     }
+
+    if (calculated.shortfall > 0) {
+      const roundedAmount = Math.min(
+        60000,
+        Math.max(6000, Math.round(calculated.shortfall / 1000) * 1000),
+      );
+      setPendingLoanAmount(roundedAmount);
+      setActiveTab("prestamo");
+    }
   }
 
   async function handleSaveToClient() {
-    if (!currentClient) {
-      alert("Seleccione o cree un cliente en Asesoramiento.");
-      return;
-    }
-    if (!result) {
-      alert("Calcule primero la hipoteca.");
-      return;
-    }
+    if (!currentClient || !result) return;
     try {
+      const interestRate = getInterestRate();
       await updateClient({
         ...currentClient,
         income: form.monthlyIncome,
@@ -138,7 +166,7 @@ export function HipotecaTab() {
         financiacionPct: String(form.financiacionPct),
         housePrice: result.precioMaximoVivienda,
         loanTerm: form.loanTerm,
-        hipotecaInterestRate: form.hipotecaInterestRate,
+        hipotecaInterestRate: interestRate,
         availableSavings: form.availableSavings,
         existingLoanPayment: form.existingLoanPayment,
         itpPercentage: form.itpPercentage,
@@ -158,7 +186,7 @@ export function HipotecaTab() {
           financiacionPct: form.financiacionPct,
           housePrice: result.precioMaximoVivienda,
           loanTerm: form.loanTerm,
-          hipotecaInterestRate: form.hipotecaInterestRate,
+          hipotecaInterestRate: interestRate,
           availableSavings: form.availableSavings,
           existingLoanPayment: form.existingLoanPayment,
           itpPercentage: form.itpPercentage,
@@ -166,10 +194,10 @@ export function HipotecaTab() {
           importeHipoteca: result.importeHipoteca,
           precioMaximoVivienda: result.precioMaximoVivienda,
           ahorrosNecesarios: result.ahorrosNecesarios,
+          shortfall: result.shortfall,
           updatedAt: new Date().toISOString(),
         },
       });
-      alert(`Datos de hipoteca guardados para "${currentClient.name}".`);
     } catch {
       alert("No se pudo guardar en Supabase.");
     }
@@ -195,10 +223,21 @@ export function HipotecaTab() {
           <Field label="Porcentaje de Financiación (%)"><Input type="number" value={form.financiacionPct} onChange={(e) => updateField("financiacionPct", Number(e.target.value))} /></Field>
           <Field label="Precio Vivienda (€)"><Input type="number" value={form.housePrice || ""} onChange={(e) => updateField("housePrice", Number(e.target.value))} placeholder="Dejar en blanco para calcular automáticamente" /></Field>
           <Field label="Plazo del Préstamo (años)"><Input type="number" value={form.loanTerm} onChange={(e) => updateField("loanTerm", Number(e.target.value))} /></Field>
-          <Field label="Tipo de Interés Anual (%)"><Input type="number" step="0.01" value={form.hipotecaInterestRate} onChange={(e) => updateField("hipotecaInterestRate", Number(e.target.value))} /></Field>
+          <Field label="Tipo de Interés Anual (%)">
+            <Input
+              type="text"
+              inputMode="decimal"
+              value={interestRateInput}
+              onChange={(e) => setInterestRateInput(e.target.value)}
+              placeholder="Ej: 3.5"
+            />
+          </Field>
           <Field label="Ahorros Disponibles (€)"><Input type="number" value={form.availableSavings} onChange={(e) => updateField("availableSavings", Number(e.target.value))} /></Field>
           <Field label="Cuota Préstamo Personal Existente (€)"><Input type="number" value={form.existingLoanPayment} onChange={(e) => updateField("existingLoanPayment", Number(e.target.value))} /></Field>
-          <Field label="ITP (%)"><Input type="number" step="0.1" value={form.itpPercentage} onChange={(e) => updateField("itpPercentage", Number(e.target.value))} /></Field>
+          <Field label="ITP (%)">
+            <Input value={form.itpPercentage} readOnly />
+            <p className="mt-1 text-xs text-gray-500">{itpBonusNote}</p>
+          </Field>
           <Field label="Valor ITP (€)"><Input value={itpValue.toFixed(2)} readOnly /></Field>
           <Field label="Notaría (€)"><Input type="number" value={form.notaria} onChange={(e) => updateField("notaria", Number(e.target.value))} /></Field>
           <Field label="Registro (€)"><Input type="number" value={form.registro} onChange={(e) => updateField("registro", Number(e.target.value))} /></Field>
@@ -223,11 +262,21 @@ export function HipotecaTab() {
               <p>Ahorros necesarios: <strong>{formatCurrency(result.ahorrosNecesarios)}</strong></p>
               <p>Total gastos: <strong>{formatCurrency(result.totalGastos)}</strong></p>
               <p>ITP: <strong>{formatCurrency(result.itpValue)}</strong></p>
+              {result.shortfall > 0 ? (
+                <p className="font-semibold text-amber-600">
+                  Financiación adicional: {formatCurrency(result.shortfall)}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm dark:bg-gray-700" dangerouslySetInnerHTML={{ __html: result.resumenHtml }} />
+          {result.shortfall > 0 ? (
+            <p className="mt-3 text-sm text-blue-600">
+              Se ha redirigido al préstamo personal con el importe sugerido de {formatCurrency(result.shortfall)}.
+            </p>
+          ) : null}
           <div className="mt-6 flex gap-3">
-            <PrimaryButton type="button" onClick={handleSaveToClient}>Guardar Datos de Hipoteca al Cliente</PrimaryButton>
+            <PrimaryButton type="button" onClick={() => void handleSaveToClient()}>Guardar Datos de Hipoteca al Cliente</PrimaryButton>
           </div>
         </Panel>
       ) : null}

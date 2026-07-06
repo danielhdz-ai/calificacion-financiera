@@ -1,12 +1,12 @@
 export const AGENT_INFO = {
-  name: "Livendia",
-  title: "Gestión Financiera",
+  name: "Daniel Hernández",
+  title: "Gestor",
   phone: "60037742",
   email: "admin.livendia@gmail.com",
   company: "Livendia",
   address: "08001 Barcelona",
   landline: "60037742",
-  website: "www.livendia.com",
+  website: "https://livendia.com",
 };
 
 export const DEFAULT_PERSONAL_LOAN_INTEREST_RATE = 0.065;

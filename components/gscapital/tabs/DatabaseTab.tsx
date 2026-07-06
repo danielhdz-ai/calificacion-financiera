@@ -1,15 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ClientDetailModal } from "@/components/gscapital/ClientDetailModal";
 import { useGSCapital } from "@/components/gscapital/GSCapitalContext";
 import { Field, Input, Panel, Select } from "@/components/gscapital/ui/Panel";
 import { WHATSAPP_MESSAGE_TEMPLATE } from "@/lib/gscapital/constants";
+import { downloadClientSummary } from "@/lib/gscapital/client-document";
 import { formatCurrency, getStatusColor } from "@/lib/gscapital/format";
+import type { Client } from "@/lib/gscapital/types";
 
 export function DatabaseTab() {
   const { clients, setCurrentClient, setActiveTab, deleteClient } = useGSCapital();
   const [statusFilter, setStatusFilter] = useState("todos");
   const [zoneFilter, setZoneFilter] = useState("");
+  const [viewClient, setViewClient] = useState<Client | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -66,7 +70,7 @@ export function DatabaseTab() {
           <p className="py-8 text-center text-gray-500">No hay clientes en la base de datos.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[960px] border-collapse text-sm">
+            <table className="w-full min-w-[1100px] border-collapse text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-900">
                   {["Cliente", "Zona", "Ingresos", "Deudas", "Titulares", "Financiación", "Precio Viv.", "Hipoteca", "Cuota", "Estado", "Acciones"].map((header) => (
@@ -92,7 +96,9 @@ export function DatabaseTab() {
                       </span>
                     </td>
                     <td className="border px-2 py-2 dark:border-gray-600">
-                      <div className="flex gap-1">
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" className="text-purple-600" onClick={() => setViewClient(client)}>Ver</button>
+                        <button type="button" className="text-indigo-600" onClick={() => downloadClientSummary(client)}>Descargar</button>
                         <button type="button" className="text-blue-600" onClick={() => { setCurrentClient(client); setActiveTab("asesoramiento"); }}>Editar</button>
                         <button type="button" className="text-green-600" onClick={() => openWhatsApp(client.personalData?.phone)}>WhatsApp</button>
                         <button type="button" className="text-red-600" onClick={() => void deleteClient(client.id)}>Eliminar</button>
@@ -105,6 +111,13 @@ export function DatabaseTab() {
           </div>
         )}
       </Panel>
+
+      {viewClient ? (
+        <ClientDetailModal
+          client={viewClient}
+          onClose={() => setViewClient(null)}
+        />
+      ) : null}
     </div>
   );
 }

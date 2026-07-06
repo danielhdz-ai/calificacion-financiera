@@ -67,6 +67,13 @@ export function calculateMortgage(input: MortgageInput): MortgageResult {
 
   resumenHtml += ` La cuota mensual estimada sería de <strong>${formatCurrency(cuotaMensual)}</strong> y el banco financia <strong>${formatCurrency(importeHipoteca)}</strong> (<strong>${input.financiacionPct}%</strong>).`;
 
+  const shortfall =
+    input.availableSavings > 0 && input.availableSavings < ahorrosNecesarios
+      ? ahorrosNecesarios - input.availableSavings
+      : input.availableSavings <= 0
+        ? ahorrosNecesarios
+        : 0;
+
   return {
     porcentajePago,
     capacidadMaximaPago,
@@ -76,6 +83,7 @@ export function calculateMortgage(input: MortgageInput): MortgageResult {
     cuotaMensual,
     itpValue,
     totalGastos,
+    shortfall,
     resumenHtml,
   };
 }

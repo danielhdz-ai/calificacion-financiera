@@ -89,6 +89,7 @@ export type MortgageSnapshot = {
   importeHipoteca?: number;
   precioMaximoVivienda?: number;
   ahorrosNecesarios?: number;
+  shortfall?: number;
   updatedAt?: string;
 };
 
@@ -161,6 +162,7 @@ export type MortgageResult = {
   cuotaMensual: number;
   itpValue: number;
   totalGastos: number;
+  shortfall: number;
   resumenHtml: string;
 };
 

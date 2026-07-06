@@ -63,7 +63,7 @@ export default function RegisterPage() {
             {AGENT_INFO.company}
           </h1>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Crear cuenta en la plataforma
+            {AGENT_INFO.name} | tlf: {AGENT_INFO.phone} | {AGENT_INFO.email}
           </p>
         </div>
 

@@ -43,7 +43,7 @@ export default function LoginPage() {
             {AGENT_INFO.company}
           </h1>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            tlf: {AGENT_INFO.phone} | {AGENT_INFO.email}
+            {AGENT_INFO.name} | tlf: {AGENT_INFO.phone} | {AGENT_INFO.email}
           </p>
         </div>
 

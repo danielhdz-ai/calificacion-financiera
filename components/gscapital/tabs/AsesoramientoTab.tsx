@@ -55,7 +55,7 @@ function buildClientFromForm(current: Client, form: FormData): Client {
 }
 
 export function AsesoramientoTab() {
-  const { currentClient, createClient, updateClient, setCurrentClient, clients } =
+  const { currentClient, createClient, updateClient, setCurrentClient, clients, setActiveTab } =
     useGSCapital();
   const [formKey, setFormKey] = useState(0);
 
@@ -80,7 +80,7 @@ export function AsesoramientoTab() {
     const updated = buildClientFromForm(currentClient, form);
     try {
       await updateClient(updated);
-      alert("Información del cliente guardada correctamente.");
+      setActiveTab("hipoteca");
     } catch {
       alert("No se pudo guardar en Supabase.");
     }
@@ -98,6 +98,7 @@ export function AsesoramientoTab() {
     <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
       <Panel title="Asesoramiento Financiero">
         <div className="mb-6 space-y-2 text-gray-700 dark:text-gray-300">
+          <p>{AGENT_INFO.name}</p>
           <p>{AGENT_INFO.address}</p>
           <p>Tfno. {AGENT_INFO.landline}</p>
           <p>{AGENT_INFO.website}</p>

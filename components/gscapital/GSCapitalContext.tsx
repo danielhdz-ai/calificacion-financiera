@@ -56,6 +56,8 @@ type GSCapitalContextValue = {
     tasadores: Tasador[];
   }) => Promise<void>;
   refreshAll: () => Promise<void>;
+  pendingLoanAmount: number | null;
+  setPendingLoanAmount: (amount: number | null) => void;
 };
 
 const GSCapitalContext = createContext<GSCapitalContextValue | null>(null);
@@ -69,6 +71,7 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
   const [inmobiliarios, setInmobiliarios] = useState<Inmobiliario[]>([]);
   const [tasadores, setTasadores] = useState<Tasador[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingLoanAmount, setPendingLoanAmount] = useState<number | null>(null);
 
   const refreshAll = useCallback(async () => {
     setLoading(true);
@@ -248,6 +251,8 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
       deleteTasador,
       replaceAllData,
       refreshAll,
+      pendingLoanAmount,
+      setPendingLoanAmount,
     }),
     [
       activeTab,
@@ -269,6 +274,7 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
       deleteTasador,
       replaceAllData,
       refreshAll,
+      pendingLoanAmount,
     ],
   );
 

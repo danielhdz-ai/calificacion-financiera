@@ -18,8 +18,8 @@ export function AppHeader({
           <h1 className="text-2xl font-bold uppercase text-slate-800 dark:text-white">
             {AGENT_INFO.company}
           </h1>
-          <p className="text-sm lowercase italic text-slate-500 dark:text-gray-400">
-            tlf: {AGENT_INFO.phone} | email: {AGENT_INFO.email}
+          <p className="text-sm italic text-slate-500 dark:text-gray-400">
+            {AGENT_INFO.name} | tlf: {AGENT_INFO.phone} | email: {AGENT_INFO.email}
           </p>
         </div>
         <div className="flex items-center gap-3">
