@@ -10,6 +10,7 @@ import { ConfiguracionTab } from "@/components/gscapital/tabs/ConfiguracionTab";
 import { DatabaseTab } from "@/components/gscapital/tabs/DatabaseTab";
 import { HipotecaTab } from "@/components/gscapital/tabs/HipotecaTab";
 import { InmobiliariosTab } from "@/components/gscapital/tabs/InmobiliariosTab";
+import { NotariasTab } from "@/components/gscapital/tabs/NotariasTab";
 import { PrestamoTab } from "@/components/gscapital/tabs/PrestamoTab";
 import { TasadoresTab } from "@/components/gscapital/tabs/TasadoresTab";
 import {
@@ -34,6 +35,7 @@ function TabContent() {
       {activeTab === "database" ? <DatabaseTab /> : null}
       {activeTab === "colaboradores" ? <ColaboradoresTab /> : null}
       {activeTab === "inmobiliarios" ? <InmobiliariosTab /> : null}
+      {activeTab === "notarias" ? <NotariasTab /> : null}
       {activeTab === "tasadores" ? <TasadoresTab /> : null}
       {activeTab === "configuracion" ? <ConfiguracionTab /> : null}
     </>

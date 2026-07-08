@@ -8,6 +8,7 @@ export function ConfiguracionTab() {
     clients,
     collaborators,
     inmobiliarios,
+    notarias,
     tasadores,
     replaceAllData,
     refreshAll,
@@ -15,7 +16,13 @@ export function ConfiguracionTab() {
 
   function exportJson() {
     const blob = new Blob(
-      [JSON.stringify({ clients, collaborators, inmobiliarios, tasadores }, null, 2)],
+      [
+        JSON.stringify(
+          { clients, collaborators, inmobiliarios, notarias, tasadores },
+          null,
+          2,
+        ),
+      ],
       { type: "application/json" },
     );
     const url = URL.createObjectURL(blob);
@@ -36,6 +43,7 @@ export function ConfiguracionTab() {
           clients?: typeof clients;
           collaborators?: typeof collaborators;
           inmobiliarios?: typeof inmobiliarios;
+          notarias?: typeof notarias;
           tasadores?: typeof tasadores;
         };
         if (!confirm("¿Importar datos? Esto reemplazará la información actual.")) {
@@ -45,6 +53,7 @@ export function ConfiguracionTab() {
           clients: data.clients ?? [],
           collaborators: data.collaborators ?? [],
           inmobiliarios: data.inmobiliarios ?? [],
+          notarias: data.notarias ?? [],
           tasadores: data.tasadores ?? [],
         });
         alert("Datos importados correctamente en Supabase.");
@@ -64,7 +73,7 @@ export function ConfiguracionTab() {
           <div>
             <h3 className="mb-3 text-lg font-semibold">Exportar Datos</h3>
             <p className="mb-4 text-gray-600 dark:text-gray-300">
-              Guarda una copia de clientes, colaboradores bancarios, inmobiliarios y tasadores.
+              Guarda una copia de clientes, colaboradores bancarios, inmobiliarios, notarías y tasadores.
             </p>
             <PrimaryButton type="button" onClick={exportJson}>
               Exportar a JSON

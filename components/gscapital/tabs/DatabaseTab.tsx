@@ -132,6 +132,7 @@ export function DatabaseTab() {
                         <button type="button" className={actionButtonClass} onClick={() => setViewClient(client)}>Ver</button>
                         <button type="button" className={actionButtonClass} onClick={() => downloadClientSummary(client)}>Descargar</button>
                         <button type="button" className={actionButtonClass} onClick={() => { setCurrentClient(client); setActiveTab("asesoramiento"); }}>Editar</button>
+                        <button type="button" className={actionButtonClass} onClick={() => { setCurrentClient(client); setActiveTab("hipoteca"); }}>Hipoteca</button>
                         <button type="button" className={actionButtonClass} onClick={() => openWhatsApp(getOwnersFromClient(client)[0]?.phone)}>WhatsApp</button>
                         <button type="button" className={actionButtonClass} onClick={() => void deleteClient(client.id)}>Eliminar</button>
                       </div>

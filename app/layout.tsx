@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Livendia - Plataforma Financiera",
+  title: "Livendia Finance - Plataforma Financiera",
   description:
-    "Livendia: asesoramiento, calculadoras, base de clientes y colaboradores.",
+    "Livendia Finance: asesoramiento, calculadoras, base de clientes y colaboradores.",
 };
 
 export default function RootLayout({

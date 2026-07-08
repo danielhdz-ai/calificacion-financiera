@@ -106,4 +106,5 @@ function createSyncHandlers<T extends { id: string }>(table: string) {
 export const clientsHandlers = createSyncHandlers("clients");
 export const collaboratorsHandlers = createSyncHandlers("collaborators");
 export const inmobiliariosHandlers = createSyncHandlers("inmobiliarios");
+export const notariasHandlers = createSyncHandlers("notarias");
 export const tasadoresHandlers = createSyncHandlers("tasadores");

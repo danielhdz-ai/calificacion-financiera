@@ -1,4 +1,4 @@
--- Livendia: esquema completo con autenticación por usuario
+-- Livendia Finance: esquema completo con autenticación por usuario
 
 create table if not exists public.clients (
   id text primary key,
@@ -32,10 +32,19 @@ create table if not exists public.tasadores (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.notarias (
+  id text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.clients add column if not exists user_id uuid references auth.users(id) on delete cascade;
 alter table public.collaborators add column if not exists user_id uuid references auth.users(id) on delete cascade;
 alter table public.inmobiliarios add column if not exists user_id uuid references auth.users(id) on delete cascade;
 alter table public.tasadores add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.notarias add column if not exists user_id uuid references auth.users(id) on delete cascade;
 
 create or replace function public.set_updated_at()
 returns trigger as $$
@@ -65,10 +74,16 @@ create trigger tasadores_set_updated_at
   before update on public.tasadores
   for each row execute function public.set_updated_at();
 
+drop trigger if exists notarias_set_updated_at on public.notarias;
+create trigger notarias_set_updated_at
+  before update on public.notarias
+  for each row execute function public.set_updated_at();
+
 alter table public.clients enable row level security;
 alter table public.collaborators enable row level security;
 alter table public.inmobiliarios enable row level security;
 alter table public.tasadores enable row level security;
+alter table public.notarias enable row level security;
 
 drop policy if exists "Allow public read clients" on public.clients;
 drop policy if exists "Allow public write clients" on public.clients;
@@ -96,6 +111,13 @@ drop policy if exists "Allow public write tasadores" on public.tasadores;
 drop policy if exists "Users manage own tasadores" on public.tasadores;
 create policy "Users manage own tasadores"
   on public.tasadores for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "Allow public read notarias" on public.notarias;
+drop policy if exists "Allow public write notarias" on public.notarias;
+drop policy if exists "Users manage own notarias" on public.notarias;
+create policy "Users manage own notarias"
+  on public.notarias for all to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop table if exists public.evaluations;

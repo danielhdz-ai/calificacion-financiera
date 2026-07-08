@@ -2,6 +2,7 @@ import type {
   Client,
   Collaborator,
   Inmobiliario,
+  Notaria,
   Tasador,
 } from "@/lib/gscapital/types";
 
@@ -55,6 +56,18 @@ export async function syncInmobiliarios(inmobiliarios: Inmobiliario[]): Promise<
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ inmobiliarios }),
+  });
+}
+
+export async function loadNotarias(): Promise<Notaria[]> {
+  return loadSafe<Notaria>("/api/notarias");
+}
+
+export async function syncNotarias(notarias: Notaria[]): Promise<void> {
+  await fetchJson("/api/notarias", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ notarias }),
   });
 }
 

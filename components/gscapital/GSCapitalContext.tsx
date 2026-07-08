@@ -13,17 +13,21 @@ import {
   loadClients,
   loadCollaborators,
   loadInmobiliarios,
+  loadNotarias,
   loadTasadores,
   syncClients,
   syncCollaborators,
   syncInmobiliarios,
+  syncNotarias,
   syncTasadores,
 } from "@/lib/gscapital/api";
 import { createEmptyClient } from "@/lib/gscapital/client-factory";
+import type { OwnerCount } from "@/lib/gscapital/owners";
 import type {
   Client,
   Collaborator,
   Inmobiliario,
+  Notaria,
   TabId,
   Tasador,
 } from "@/lib/gscapital/types";
@@ -38,21 +42,25 @@ type GSCapitalContextValue = {
   setCurrentClient: (client: Client | null) => void;
   collaborators: Collaborator[];
   inmobiliarios: Inmobiliario[];
+  notarias: Notaria[];
   tasadores: Tasador[];
   loading: boolean;
-  createClient: (name: string) => Promise<void>;
+  createClient: (name: string, ownerCount?: OwnerCount) => Promise<void>;
   updateClient: (client: Client) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
   saveCollaborator: (collaborator: Collaborator) => Promise<void>;
   deleteCollaborator: (id: string) => Promise<void>;
   saveInmobiliario: (inmobiliario: Inmobiliario) => Promise<void>;
   deleteInmobiliario: (id: string) => Promise<void>;
+  saveNotaria: (notaria: Notaria) => Promise<void>;
+  deleteNotaria: (id: string) => Promise<void>;
   saveTasador: (tasador: Tasador) => Promise<void>;
   deleteTasador: (id: string) => Promise<void>;
   replaceAllData: (payload: {
     clients: Client[];
     collaborators: Collaborator[];
     inmobiliarios: Inmobiliario[];
+    notarias: Notaria[];
     tasadores: Tasador[];
   }) => Promise<void>;
   refreshAll: () => Promise<void>;
@@ -69,22 +77,25 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [inmobiliarios, setInmobiliarios] = useState<Inmobiliario[]>([]);
+  const [notarias, setNotarias] = useState<Notaria[]>([]);
   const [tasadores, setTasadores] = useState<Tasador[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingLoanAmount, setPendingLoanAmount] = useState<number | null>(null);
 
   const refreshAll = useCallback(async () => {
     setLoading(true);
-    const [loadedClients, loadedCollaborators, loadedInmobiliarios, loadedTasadores] =
+    const [loadedClients, loadedCollaborators, loadedInmobiliarios, loadedNotarias, loadedTasadores] =
       await Promise.all([
         loadClients(),
         loadCollaborators(),
         loadInmobiliarios(),
+        loadNotarias(),
         loadTasadores(),
       ]);
     setClients(loadedClients);
     setCollaborators(loadedCollaborators);
     setInmobiliarios(loadedInmobiliarios);
+    setNotarias(loadedNotarias);
     setTasadores(loadedTasadores);
     setLoading(false);
   }, []);
@@ -115,14 +126,19 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
     await syncInmobiliarios(next);
   }, []);
 
+  const persistNotarias = useCallback(async (next: Notaria[]) => {
+    setNotarias(next);
+    await syncNotarias(next);
+  }, []);
+
   const persistTasadores = useCallback(async (next: Tasador[]) => {
     setTasadores(next);
     await syncTasadores(next);
   }, []);
 
   const createClient = useCallback(
-    async (name: string) => {
-      const client = createEmptyClient(name);
+    async (name: string, ownerCount: OwnerCount = 1) => {
+      const client = createEmptyClient(name, ownerCount);
       const next = [...clients, client];
       await persistClients(next);
       setCurrentClient(client);
@@ -192,6 +208,23 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
     [inmobiliarios, persistInmobiliarios],
   );
 
+  const saveNotaria = useCallback(
+    async (notaria: Notaria) => {
+      const next = notarias.some((item) => item.id === notaria.id)
+        ? notarias.map((item) => (item.id === notaria.id ? notaria : item))
+        : [...notarias, notaria];
+      await persistNotarias(next);
+    },
+    [notarias, persistNotarias],
+  );
+
+  const deleteNotaria = useCallback(
+    async (id: string) => {
+      await persistNotarias(notarias.filter((item) => item.id !== id));
+    },
+    [notarias, persistNotarias],
+  );
+
   const saveTasador = useCallback(
     async (tasador: Tasador) => {
       const next = tasadores.some((item) => item.id === tasador.id)
@@ -214,17 +247,19 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
       clients: Client[];
       collaborators: Collaborator[];
       inmobiliarios: Inmobiliario[];
+      notarias: Notaria[];
       tasadores: Tasador[];
     }) => {
       await Promise.all([
         persistClients(payload.clients),
         persistCollaborators(payload.collaborators),
         persistInmobiliarios(payload.inmobiliarios),
+        persistNotarias(payload.notarias),
         persistTasadores(payload.tasadores),
       ]);
       setCurrentClient(null);
     },
-    [persistClients, persistCollaborators, persistInmobiliarios, persistTasadores],
+    [persistClients, persistCollaborators, persistInmobiliarios, persistNotarias, persistTasadores],
   );
 
   const value = useMemo(
@@ -238,6 +273,7 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
       setCurrentClient,
       collaborators,
       inmobiliarios,
+      notarias,
       tasadores,
       loading,
       createClient,
@@ -247,6 +283,8 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
       deleteCollaborator,
       saveInmobiliario,
       deleteInmobiliario,
+      saveNotaria,
+      deleteNotaria,
       saveTasador,
       deleteTasador,
       replaceAllData,
@@ -261,6 +299,7 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
       currentClient,
       collaborators,
       inmobiliarios,
+      notarias,
       tasadores,
       loading,
       createClient,
@@ -270,6 +309,8 @@ export function GSCapitalProvider({ children }: { children: ReactNode }) {
       deleteCollaborator,
       saveInmobiliario,
       deleteInmobiliario,
+      saveNotaria,
+      deleteNotaria,
       saveTasador,
       deleteTasador,
       replaceAllData,

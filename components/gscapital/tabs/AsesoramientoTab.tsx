@@ -140,7 +140,7 @@ export function AsesoramientoTab() {
 
   useEffect(() => {
     setOwnerCount(getOwnerCount(currentClient));
-  }, [currentClient?.id]);
+  }, [currentClient]);
 
   const owners = useMemo(
     () => ensureOwnersForCount(currentClient, ownerCount),
@@ -148,11 +148,15 @@ export function AsesoramientoTab() {
   );
 
   async function handleNewClient() {
-    const name = prompt("Ingrese el nombre del titular principal:");
+    const count = ownerCount;
+    const promptMessage =
+      count === 1
+        ? "Ingrese el nombre del titular:"
+        : `Ingrese el nombre del primer titular (${count} copropietarios en la operación):`;
+    const name = prompt(promptMessage);
     if (!name?.trim()) return;
     try {
-      await createClient(name.trim());
-      setOwnerCount(1);
+      await createClient(name.trim(), count);
       setFormKey((value) => value + 1);
     } catch {
       alert("No se pudo guardar el cliente en Supabase.");

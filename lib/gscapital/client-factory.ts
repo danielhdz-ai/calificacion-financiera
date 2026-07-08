@@ -1,7 +1,22 @@
 import { createId } from "./format";
+import { emptyOwner } from "./owners";
+import type { OwnerCount } from "./owners";
 import type { Client } from "./types";
 
-export function createEmptyClient(name: string): Client {
+export function createEmptyClient(name: string, ownerCount: OwnerCount = 1): Client {
+  const owners = Array.from({ length: ownerCount }, (_, index) =>
+    index === 0
+      ? emptyOwner({
+          fullName: name.trim(),
+          payslips: "2000",
+          savings: "0",
+          loans: "0",
+          contractType: "",
+          seniority: "",
+        })
+      : emptyOwner(),
+  );
+
   return {
     id: createId(),
     name: name.trim(),
@@ -10,7 +25,7 @@ export function createEmptyClient(name: string): Client {
     debts: 0,
     availableSavings: 0,
     housePrice: 0,
-    numTitulares: "1",
+    numTitulares: String(ownerCount),
     financiacionPct: "90",
     mortgageAmount: 0,
     monthlyPayment: 0,
@@ -25,24 +40,8 @@ export function createEmptyClient(name: string): Client {
     loanTerm: 30,
     existingLoanPayment: 0,
     status: "pendiente",
-    owners: [
-      {
-        fullName: name.trim(),
-        payslips: "2000",
-        savings: "0",
-        loans: "0",
-        contractType: "",
-        seniority: "",
-      },
-    ],
-    personalData: {
-      fullName: name.trim(),
-      payslips: "2000",
-      savings: "0",
-      loans: "0",
-      contractType: "",
-      seniority: "",
-    },
+    owners,
+    personalData: owners[0],
     additionalInfo: {
       propertyValue: "0",
       zonesOfInterest: "",

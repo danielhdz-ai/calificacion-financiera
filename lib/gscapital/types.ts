@@ -126,6 +126,16 @@ export type Inmobiliario = {
   notas?: string;
 };
 
+export type Notaria = {
+  id: string;
+  notaria: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  zona?: string;
+  notas?: string;
+};
+
 export type TabId =
   | "asesoramiento"
   | "hipoteca"
@@ -133,6 +143,7 @@ export type TabId =
   | "database"
   | "colaboradores"
   | "inmobiliarios"
+  | "notarias"
   | "tasadores"
   | "configuracion";
 
