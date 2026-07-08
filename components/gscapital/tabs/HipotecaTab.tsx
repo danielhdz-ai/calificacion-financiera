@@ -167,6 +167,9 @@ export function HipotecaTab() {
           precioMaximoVivienda: calculated.precioMaximoVivienda,
           ahorrosNecesarios: calculated.ahorrosNecesarios,
           shortfall: calculated.shortfall,
+          suggestedPersonalLoanPayment: calculated.suggestedPersonalLoanPayment,
+          totalOperationCuota: calculated.totalOperationCuota,
+          totalCuotaMensual: calculated.totalCuotaMensual,
           updatedAt: new Date().toISOString(),
         },
       });
@@ -222,6 +225,9 @@ export function HipotecaTab() {
           precioMaximoVivienda: result.precioMaximoVivienda,
           ahorrosNecesarios: result.ahorrosNecesarios,
           shortfall: result.shortfall,
+          suggestedPersonalLoanPayment: result.suggestedPersonalLoanPayment,
+          totalOperationCuota: result.totalOperationCuota,
+          totalCuotaMensual: result.totalCuotaMensual,
           updatedAt: new Date().toISOString(),
         },
       });
@@ -308,7 +314,18 @@ export function HipotecaTab() {
                 </p>
               ) : null}
               <p>Importe hipoteca: <strong>{formatCurrency(result.importeHipoteca)}</strong></p>
-              <p>Cuota mensual: <strong className="text-blue-600">{formatCurrency(result.cuotaMensual)}</strong></p>
+              <p>Cuota hipoteca: <strong className="text-blue-600">{formatCurrency(result.cuotaMensual)}</strong></p>
+              {result.existingLoanPayment > 0 ? (
+                <p>Préstamo personal existente: <strong>{formatCurrency(result.existingLoanPayment)}</strong></p>
+              ) : null}
+              {result.suggestedPersonalLoanPayment > 0 ? (
+                <p>Préstamo personal adicional (estimado): <strong className="text-amber-600">{formatCurrency(result.suggestedPersonalLoanPayment)}</strong></p>
+              ) : null}
+              {(result.totalOperationCuota > result.cuotaMensual || result.totalCuotaMensual > result.cuotaMensual) ? (
+                <p className="border-t border-gray-200 pt-2 dark:border-gray-600">
+                  Total cuota mensual: <strong className="text-blue-600">{formatCurrency(result.totalCuotaMensual || result.totalOperationCuota)}</strong>
+                </p>
+              ) : null}
             </div>
             <div className="space-y-2 text-sm">
               <p>Ahorros necesarios: <strong>{formatCurrency(result.ahorrosNecesarios)}</strong></p>

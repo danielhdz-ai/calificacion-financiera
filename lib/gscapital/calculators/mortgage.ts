@@ -1,6 +1,12 @@
 import type { MortgageInput, MortgageResult } from "../types";
 import { formatCurrency } from "../format";
 
+/** Estimación orientativa de cuota mensual para cubrir el déficit de ahorros. */
+function estimateShortfallLoanPayment(shortfall: number): number {
+  if (shortfall <= 0) return 0;
+  return Math.round(shortfall / 100);
+}
+
 export function calculateMortgage(input: MortgageInput): MortgageResult {
   const porcentajePago = input.numTitulares === "1" ? 0.3 : 0.35;
   const currentInterestRate = input.hipotecaInterestRate / 100;
@@ -30,6 +36,7 @@ export function calculateMortgage(input: MortgageInput): MortgageResult {
 
   const itpValue = precioMaximoVivienda * itpPercentage;
   const importeHipoteca = precioMaximoVivienda * (input.financiacionPct / 100);
+  const aportacionEntidad = precioMaximoVivienda - importeHipoteca;
   const totalGastos =
     itpValue +
     input.notaria +
@@ -37,7 +44,7 @@ export function calculateMortgage(input: MortgageInput): MortgageResult {
     input.gestoria +
     input.tasacion +
     input.honorariosGSCapital;
-  const ahorrosNecesarios = precioMaximoVivienda - importeHipoteca + totalGastos;
+  const ahorrosNecesarios = aportacionEntidad + totalGastos;
 
   const tasaMensual = currentInterestRate / 12;
   const plazoPrestamo = input.loanTerm * 12;
@@ -53,20 +60,6 @@ export function calculateMortgage(input: MortgageInput): MortgageResult {
     }
   }
 
-  let resumenHtml = `Para poder comprar una vivienda de <strong>${formatCurrency(precioMaximoVivienda)}</strong> necesitarás tener ahorrados <strong>${formatCurrency(ahorrosNecesarios)}</strong>. De esa cantidad, <strong>${formatCurrency(precioMaximoVivienda - importeHipoteca)}</strong> son aportación para la entidad financiera y <strong>${formatCurrency(totalGastos)}</strong> para gastos e impuestos.`;
-
-  if (input.availableSavings > 0) {
-    resumenHtml += ` Tú aportas de tus ahorros <strong>${formatCurrency(input.availableSavings)}</strong>.`;
-    if (input.availableSavings < ahorrosNecesarios) {
-      const shortfall = ahorrosNecesarios - input.availableSavings;
-      if (shortfall > 0) {
-        resumenHtml += ` La diferencia de <strong>${formatCurrency(shortfall)}</strong> podría necesitar financiación adicional.`;
-      }
-    }
-  }
-
-  resumenHtml += ` La cuota mensual estimada sería de <strong>${formatCurrency(cuotaMensual)}</strong> y el banco financia <strong>${formatCurrency(importeHipoteca)}</strong> (<strong>${input.financiacionPct}%</strong>).`;
-
   const shortfall =
     input.availableSavings > 0 && input.availableSavings < ahorrosNecesarios
       ? ahorrosNecesarios - input.availableSavings
@@ -74,16 +67,55 @@ export function calculateMortgage(input: MortgageInput): MortgageResult {
         ? ahorrosNecesarios
         : 0;
 
+  const existingLoanPayment = input.existingLoanPayment || 0;
+  const suggestedPersonalLoanPayment = estimateShortfallLoanPayment(shortfall);
+  const totalOperationCuota = cuotaMensual + suggestedPersonalLoanPayment;
+  const totalCuotaMensual = totalOperationCuota + existingLoanPayment;
+
+  let resumenHtml = `Para poder comprar una vivienda de <strong>${formatCurrency(precioMaximoVivienda)}</strong> necesitarás tener ahorrados <strong>${formatCurrency(ahorrosNecesarios)}</strong>. De esa cantidad, <strong>${formatCurrency(aportacionEntidad)}</strong> son aportación para la entidad financiera, ya que el banco financia <strong>${formatCurrency(importeHipoteca)}</strong> (<strong>${input.financiacionPct}%</strong>).`;
+
+  resumenHtml += `<br><br>Los gastos de compraventa serán de <strong>${formatCurrency(totalGastos)}</strong> para gastos e impuestos.`;
+
+  if (input.availableSavings > 0) {
+    resumenHtml += ` Tú aportas de tus ahorros <strong>${formatCurrency(input.availableSavings)}</strong>.`;
+  }
+
+  if (shortfall > 0) {
+    resumenHtml += ` La diferencia de <strong>${formatCurrency(shortfall)}</strong> habría que pedir un préstamo personal, o buscar alternativa.`;
+  }
+
+  resumenHtml += `<br><br>La cuota de hipoteca aproximadamente sería de <strong>${formatCurrency(cuotaMensual)}</strong>`;
+
+  if (existingLoanPayment > 0) {
+    resumenHtml += ` y el coste del préstamo personal existente <strong>${formatCurrency(existingLoanPayment)}</strong>`;
+  }
+
+  if (shortfall > 0 && suggestedPersonalLoanPayment > 0) {
+    resumenHtml += `, con un préstamo personal adicional estimado de <strong>${formatCurrency(suggestedPersonalLoanPayment)}</strong>`;
+    resumenHtml += `, total de la operación de <strong>${formatCurrency(totalOperationCuota)}</strong>`;
+  }
+
+  resumenHtml += ".";
+
+  if (existingLoanPayment > 0 && (shortfall > 0 || cuotaMensual > 0)) {
+    resumenHtml += ` Incluyendo el préstamo personal existente, el total mensual sería de <strong>${formatCurrency(totalCuotaMensual)}</strong>.`;
+  }
+
   return {
     porcentajePago,
     capacidadMaximaPago,
     precioMaximoVivienda,
     importeHipoteca,
+    aportacionEntidad,
     ahorrosNecesarios,
     cuotaMensual,
     itpValue,
     totalGastos,
     shortfall,
+    existingLoanPayment,
+    suggestedPersonalLoanPayment,
+    totalOperationCuota,
+    totalCuotaMensual,
     resumenHtml,
   };
 }
