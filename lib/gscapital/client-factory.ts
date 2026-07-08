@@ -43,7 +43,7 @@ export function createEmptyClient(name: string, ownerCount: OwnerCount = 1): Cli
     owners,
     personalData: owners[0],
     additionalInfo: {
-      propertyValue: "0",
+      propertyValue: "",
       zonesOfInterest: "",
       maritalStatus: "",
     },

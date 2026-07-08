@@ -5,6 +5,7 @@ import type {
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
+import { optionalNumberDisplay, parseNumberInput } from "@/lib/gscapital/format";
 
 export function Panel({
   title,
@@ -51,6 +52,29 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
     <input
       {...props}
       className={`w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white ${props.className ?? ""}`}
+    />
+  );
+}
+
+export function OptionalNumberInput({
+  value,
+  onChange,
+  placeholder,
+  className,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      placeholder={placeholder}
+      className={className}
+      value={optionalNumberDisplay(value)}
+      onChange={(event) => onChange(parseNumberInput(event.target.value))}
     />
   );
 }

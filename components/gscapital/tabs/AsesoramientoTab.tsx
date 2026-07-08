@@ -68,7 +68,9 @@ function buildClientFromForm(
     income: totals.income,
     availableSavings: totals.savings,
     debts: totals.debts,
-    housePrice: parseFloat(additionalInfo.propertyValue) || 0,
+    housePrice: additionalInfo.propertyValue.trim()
+      ? parseFloat(additionalInfo.propertyValue) || 0
+      : 0,
     additionalInfo,
   };
 }
@@ -272,7 +274,21 @@ export function AsesoramientoTab() {
               </Select>
             </Field>
             <Field label="Inmuebles Capitalizados"><Input name="clientProperties" defaultValue={ai.properties ?? ""} /></Field>
-            <Field label="Valor de la Vivienda (objetivo)"><Input name="clientPropertyValue" type="number" defaultValue={ai.propertyValue ?? currentClient?.housePrice ?? ""} /></Field>
+            <Field label="Valor de la Vivienda (objetivo, opcional)">
+              <Input
+                name="clientPropertyValue"
+                type="text"
+                inputMode="decimal"
+                defaultValue={
+                  ai.propertyValue && String(ai.propertyValue) !== "0"
+                    ? ai.propertyValue
+                    : currentClient?.housePrice && currentClient.housePrice > 0
+                      ? currentClient.housePrice
+                      : ""
+                }
+                placeholder="Dejar vacío para estimar en la calculadora"
+              />
+            </Field>
             <Field label="Zonas que Buscan"><Input name="clientZonesOfInterest" defaultValue={ai.zonesOfInterest ?? currentClient?.zone ?? ""} /></Field>
             <div className="md:col-span-2">
               <Field label="Observaciones"><TextArea name="clientObservations" rows={4} defaultValue={ai.observations ?? ""} /></Field>

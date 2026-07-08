@@ -11,6 +11,25 @@ export function parseCurrency(value: string): number {
   return parseFloat(value.replace(/[^\d,-]/g, "").replace(",", ".")) || 0;
 }
 
+/** Parsea input numérico; cadena vacía = 0 */
+export function parseNumberInput(raw: string): number {
+  const normalized = raw.trim().replace(",", ".");
+  if (normalized === "" || normalized === "-") return 0;
+  const parsed = parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/** Muestra vacío en lugar de 0 para permitir escribir importes manualmente */
+export function optionalNumberDisplay(value: number | undefined | null): string {
+  if (value === undefined || value === null || value === 0) return "";
+  return String(value);
+}
+
+export function parsePositiveNumber(value: unknown): number {
+  const parsed = parseFloat(String(value ?? "").trim());
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
 export function createId(): string {
   return `${Date.now()}${Math.random().toString(16).slice(2)}`;
 }
