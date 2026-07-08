@@ -130,7 +130,7 @@ export function DatabaseTab() {
                     <td className="border px-2 py-2 dark:border-gray-600">
                       <div className="flex flex-wrap gap-2">
                         <button type="button" className={actionButtonClass} onClick={() => setViewClient(client)}>Ver</button>
-                        <button type="button" className={actionButtonClass} onClick={() => downloadClientSummary(client)}>Descargar</button>
+                        <button type="button" className={actionButtonClass} onClick={() => void downloadClientSummary(client)}>Descargar</button>
                         <button type="button" className={actionButtonClass} onClick={() => { setCurrentClient(client); setActiveTab("asesoramiento"); }}>Editar</button>
                         <button type="button" className={actionButtonClass} onClick={() => { setCurrentClient(client); setActiveTab("hipoteca"); }}>Hipoteca</button>
                         <button type="button" className={actionButtonClass} onClick={() => openWhatsApp(getOwnersFromClient(client)[0]?.phone)}>WhatsApp</button>

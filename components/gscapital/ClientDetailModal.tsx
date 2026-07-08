@@ -168,7 +168,7 @@ export function ClientDetailModal({
         <div className="mt-6 flex flex-wrap gap-3 border-t border-gray-200 pt-4 dark:border-gray-600">
           <button
             type="button"
-            onClick={() => downloadClientSummary(client)}
+            onClick={() => void downloadClientSummary(client)}
             className="rounded-md bg-blue-700 px-4 py-2 text-sm text-white hover:bg-blue-800"
           >
             Descargar PDF para el cliente
