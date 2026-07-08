@@ -131,7 +131,7 @@ function OwnerFields({
 }
 
 export function AsesoramientoTab() {
-  const { currentClient, createClient, updateClient, setCurrentClient, clients, setActiveTab } =
+  const { currentClient, createClient, updateClient, setCurrentClient, clients } =
     useGSCapital();
   const [formKey, setFormKey] = useState(0);
   const [ownerCount, setOwnerCount] = useState<OwnerCount>(() =>
@@ -173,7 +173,7 @@ export function AsesoramientoTab() {
     const updated = buildClientFromForm(currentClient, form, ownerCount);
     try {
       await updateClient(updated);
-      setActiveTab("hipoteca");
+      alert("Información guardada correctamente en Supabase.");
     } catch {
       alert("No se pudo guardar en Supabase.");
     }

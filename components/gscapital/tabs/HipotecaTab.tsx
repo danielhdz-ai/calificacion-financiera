@@ -7,6 +7,7 @@ import {
   Input,
   Panel,
   PrimaryButton,
+  SecondaryButton,
 } from "@/components/gscapital/ui/Panel";
 import { calculateMortgage } from "@/lib/gscapital/calculators/mortgage";
 import { formatCurrency } from "@/lib/gscapital/format";
@@ -17,7 +18,9 @@ import type { Client, MortgageInput, MortgageResult } from "@/lib/gscapital/type
 const DEFAULT_INTEREST_RATE = 3;
 
 function buildFormFromClient(client: Client | null): MortgageInput {
-  const itpPercentage = calculateItpPercentage(client?.personalData?.age);
+  const itpPercentage = client
+    ? calculateItpPercentage(getOwnersAgesString(client))
+    : 10;
   return {
     clientName: client?.name ?? "",
     zone: client?.zone ?? "",
@@ -71,8 +74,6 @@ export function HipotecaTab() {
     setForm((prev) => ({ ...prev, itpPercentage: autoItpPercentage }));
   }, [autoItpPercentage]);
 
-  const effectiveHousePrice = form.housePrice || result?.precioMaximoVivienda || 0;
-  const itpValue = effectiveHousePrice * (form.itpPercentage / 100);
   const itpBonusNote =
     autoItpPercentage < 10
       ? "Bonificación joven (<35 años): ITP al 5%"
@@ -86,6 +87,22 @@ export function HipotecaTab() {
     const parsed = parseFloat(interestRateInput.replace(",", "."));
     return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_INTEREST_RATE;
   }
+
+  const previewResult = useMemo(() => {
+    return calculateMortgage({
+      ...form,
+      hipotecaInterestRate: getInterestRate(),
+      housePrice: form.housePrice || 0,
+    });
+  }, [form, interestRateInput]);
+
+  const effectiveHousePrice =
+    form.housePrice ||
+    result?.precioMaximoVivienda ||
+    previewResult.precioMaximoVivienda ||
+    0;
+  const itpValue =
+    result?.itpValue ?? effectiveHousePrice * (form.itpPercentage / 100);
 
   function handleCalculate() {
     const interestRate = getInterestRate();
@@ -154,7 +171,6 @@ export function HipotecaTab() {
         Math.max(6000, Math.round(calculated.shortfall / 1000) * 1000),
       );
       setPendingLoanAmount(roundedAmount);
-      setActiveTab("prestamo");
     }
   }
 
@@ -276,12 +292,28 @@ export function HipotecaTab() {
           </div>
           <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm dark:bg-gray-700" dangerouslySetInnerHTML={{ __html: result.resumenHtml }} />
           {result.shortfall > 0 ? (
-            <p className="mt-3 text-sm text-blue-600">
-              Se ha redirigido al préstamo personal con el importe sugerido de {formatCurrency(result.shortfall)}.
+            <p className="mt-3 text-sm text-amber-600">
+              Financiación adicional sugerida: {formatCurrency(result.shortfall)}.
+              Puedes ir manualmente a Préstamo Personal para simularla.
             </p>
           ) : null}
-          <div className="mt-6 flex gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             <PrimaryButton type="button" onClick={() => void handleSaveToClient()}>Guardar Datos de Hipoteca al Cliente</PrimaryButton>
+            {result.shortfall > 0 ? (
+              <SecondaryButton
+                type="button"
+                onClick={() => {
+                  const roundedAmount = Math.min(
+                    60000,
+                    Math.max(6000, Math.round(result.shortfall / 1000) * 1000),
+                  );
+                  setPendingLoanAmount(roundedAmount);
+                  setActiveTab("prestamo");
+                }}
+              >
+                Ir a Préstamo Personal
+              </SecondaryButton>
+            ) : null}
           </div>
         </Panel>
       ) : null}
